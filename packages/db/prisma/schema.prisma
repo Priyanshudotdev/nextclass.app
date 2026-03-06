@@ -1,0 +1,352 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum ChatRoomType {
+  DISCUSSION
+  RESOURCE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  IMAGE
+}
+
+enum NotificationType {
+  RESOURCE
+  MESSAGE
+  ATTENDANCE
+  ENROLLMENT
+  ANNOUNCEMENT
+}
+
+model Institute {
+  id      String  @id @default(cuid())
+  name    String
+  logo    String?
+  address String
+  city    String
+  state   String
+  country String
+  pincode String
+
+  subscriptionPlan   String?
+  subscriptionStatus String?
+
+  users       User[]
+  courses     Course[]
+  batches     Batch[]
+  subjects    Subject[]
+  enrollments Enrollment[]
+  chatRooms   ChatRoom[]
+  resources   Resource[]
+  attendance  Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id          String   @id @default(cuid())
+  instituteId String
+  name        String
+  email       String
+  password    String
+  address     String
+  state       String
+  city        String
+  role        UserRole @default(STUDENT)
+  status      String?
+
+  isDeleted Boolean @default(false)
+
+  institute          Institute        @relation(fields: [instituteId], references: [id])
+  enrollments        Enrollment[]
+  messages           ChatMessage[]
+  attendanceRecords  Attendance[]
+  teacherAssignments TeacherSubject[]
+  resources          Resource[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
+  sessions Session[]
+
+  children ParentStudent[] @relation("ParentRelation")
+  parents  ParentStudent[] @relation("StudentRelation")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([email, instituteId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model ParentStudent {
+  id        String @id @default(cuid())
+  parentId  String
+  studentId String
+
+  parent  User @relation("ParentRelation", fields: [parentId], references: [id])
+  student User @relation("StudentRelation", fields: [studentId], references: [id])
+
+  @@unique([parentId, studentId])
+}
+
+model Course {
+  id          String    @id @default(cuid())
+  instituteId String
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      String?
+  isDeleted   Boolean   @default(false)
+
+  institute Institute @relation(fields: [instituteId], references: [id])
+  batches   Batch[]
+  subjects  Subject[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Batch {
+  id          String    @id @default(cuid())
+  instituteId String
+  courseId    String
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      String?
+  isDeleted   Boolean   @default(false)
+
+  institute   Institute      @relation(fields: [instituteId], references: [id])
+  course      Course         @relation(fields: [courseId], references: [id])
+  enrollments Enrollment[]
+  chatRooms   ChatRoom[]
+  resources   Resource[]
+  attendance  Attendance[]
+  subjects    BatchSubject[] // ← batch-specific subject assignments
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subject {
+  id          String @id @default(cuid())
+  instituteId String
+  courseId    String
+  name        String
+
+  institute          Institute        @relation(fields: [instituteId], references: [id])
+  course             Course           @relation(fields: [courseId], references: [id])
+  teacherAssignments TeacherSubject[]
+  attendance         Attendance[]
+  resources          Resource[]
+  units              Unit[]
+  batches            BatchSubject[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Links which subjects are taught in which batch
+model BatchSubject {
+  id        String @id @default(cuid())
+  batchId   String
+  subjectId String
+
+  batch   Batch   @relation(fields: [batchId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([batchId, subjectId])
+}
+
+model TeacherSubject {
+  id          String @id @default(cuid())
+  instituteId String
+  teacherId   String
+  subjectId   String
+  batchId     String // ← teacher assigned per batch+subject combo
+
+  teacher User    @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([teacherId, subjectId, batchId])
+}
+
+model Enrollment {
+  id          String  @id @default(cuid())
+  instituteId String
+  studentId   String
+  batchId     String
+  status      String?
+
+  institute Institute @relation(fields: [instituteId], references: [id])
+  student   User      @relation(fields: [studentId], references: [id])
+  batch     Batch     @relation(fields: [batchId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, batchId])
+}
+
+model Attendance {
+  id          String           @id @default(cuid())
+  instituteId String
+  studentId   String
+  batchId     String
+  subjectId   String?
+  date        DateTime         @db.Date
+  status      AttendanceStatus
+
+  institute Institute @relation(fields: [instituteId], references: [id])
+  student   User      @relation(fields: [studentId], references: [id])
+  batch     Batch     @relation(fields: [batchId], references: [id])
+  subject   Subject?  @relation(fields: [subjectId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, batchId, subjectId, date])
+}
+
+model ChatRoom {
+  id          String       @id @default(cuid())
+  instituteId String
+  batchId     String
+  type        ChatRoomType
+  name        String? // e.g. "General", "Math Resources"
+
+  institute Institute     @relation(fields: [instituteId], references: [id])
+  batch     Batch         @relation(fields: [batchId], references: [id])
+  messages  ChatMessage[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([batchId, type]) // one DISCUSSION + one RESOURCE room per batch
+}
+
+model ChatMessage {
+  id             String      @id @default(cuid())
+  chatRoomId     String
+  senderId       String
+  content        String
+  messageType    MessageType @default(TEXT)
+  fileUrl        String?
+  isAnnouncement Boolean     @default(false)
+  isPinned       Boolean     @default(false)
+  pinnedAt       DateTime?
+
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id])
+  sender   User     @relation(fields: [senderId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Resource {
+  id          String  @id @default(cuid())
+  instituteId String
+  batchId     String
+  subjectId   String?
+  unitId      String?
+  uploadedBy  String
+  title       String
+  fileUrl     String
+  description String?
+  fileType    String?
+
+  institute Institute @relation(fields: [instituteId], references: [id])
+  batch     Batch     @relation(fields: [batchId], references: [id])
+  subject   Subject?  @relation(fields: [subjectId], references: [id])
+  unit      Unit?     @relation(fields: [unitId], references: [id])
+  teacher   User      @relation(fields: [uploadedBy], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Unit {
+  id          String  @id @default(cuid())
+  instituteId String
+  subjectId   String
+  name        String
+  description String?
+  orderIndex  Int     @default(0)
+
+  subject   Subject    @relation(fields: [subjectId], references: [id])
+  resources Resource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([subjectId, name])
+}
+
+model Notification {
+  id       String           @id @default(cuid())
+  userId   String
+  type     NotificationType
+  title    String
+  message  String
+  isRead   Boolean          @default(false)
+  metadata Json?
+  entityId String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+model AuditLog {
+  id         String  @id @default(cuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  changes    Json?
+  ipAddress  String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+}
