@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserRole } from 'db';
-import { requireRole } from '../../middlewares/auth';
+import { requireRole } from '../../middlewares/require-role';
 import * as Service from './service';
 
 const router = Router();
