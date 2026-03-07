@@ -1,7 +1,8 @@
-// Load environment variables FIRST (side-effect import)
 import './env';
 
 import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/error-handler';
 import config from './config/config';
 import modulesRouter from './modules/routes';
@@ -9,6 +10,13 @@ import modulesRouter from './modules/routes';
 const app = express();
 
 // Middleware
+app.use(
+  cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    credentials: true,
+  })
+);
+app.use(cookieParser());
 app.use(express.json());
 
 app.use('/api', modulesRouter);
