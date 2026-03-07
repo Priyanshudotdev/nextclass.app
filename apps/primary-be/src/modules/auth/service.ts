@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { AuthSession, UserLoginRequestSchema, UserRegistrationRequestSchema } from './model';
-import { prisma } from 'db';
+import {
+  AuthSession,
+  UserLoginRequestSchema,
+  UserRegistrationRequestSchema,
+  AdminRegistrationRequestSchema,
+} from './model';
+import { prisma, UserRole } from 'db';
 import bcrypt from 'bcryptjs';
 import { extractTokenFromCookie, generateSesssionToken } from '../../lib/session';
 
@@ -32,6 +37,82 @@ const createSession = async (userId: string, req: Request, res: Response): Promi
   );
 
   return session;
+};
+
+// Admin Registration - Creates Institute + Admin User in a transaction
+const adminRegistrationHandler = async (req: Request, res: Response, next: NextFunction) => {
+  const data: AdminRegistrationRequestSchema = req.body;
+
+  // Validate required fields
+  if (!data.instituteName || !data.name || !data.email || !data.password) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Check if email already exists across all institutes
+  const existingUser = await prisma.user.findFirst({
+    where: { email: data.email },
+  });
+
+  if (existingUser) {
+    return res.status(400).json({ error: 'Email already registered' });
+  }
+
+  const hashedPassword = await hashPassword(data.password);
+
+  try {
+    // Use transaction to create Institute and Admin User atomically
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create Institute first
+      const institute = await tx.institute.create({
+        data: {
+          name: data.instituteName,
+          address: data.instituteAddress || '',
+          city: data.instituteCity || '',
+          state: data.instituteState || '',
+          country: data.instituteCountry || 'India',
+          pincode: data.institutePincode || '',
+        },
+      });
+
+      // 2. Create Admin User linked to the new institute
+      const adminUser = await tx.user.create({
+        data: {
+          instituteId: institute.id,
+          name: data.name,
+          email: data.email,
+          password: hashedPassword,
+          address: data.instituteAddress || '',
+          city: data.instituteCity || '',
+          state: data.instituteState || '',
+          role: UserRole.ADMIN,
+        },
+      });
+
+      return { institute, adminUser };
+    });
+
+    await createSession(result.adminUser.id, req, res);
+
+    return res.status(201).json({
+      message: 'Institute and admin created successfully',
+      data: {
+        user: {
+          id: result.adminUser.id,
+          name: result.adminUser.name,
+          email: result.adminUser.email,
+          role: result.adminUser.role,
+          instituteId: result.adminUser.instituteId,
+        },
+        institute: {
+          id: result.institute.id,
+          name: result.institute.name,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Admin registration error:', error);
+    return res.status(500).json({ error: 'Failed to create institute and admin' });
+  }
 };
 
 const userRegistrationHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -121,6 +202,14 @@ const logoutUserHandler = async (req: Request, res: Response) => {
   return res.status(200).json({ message: 'Logout successful' });
 };
 
+const getCurrentUserHandler = async (req: Request, res: Response) => {
+  // User is already attached by authMiddleware
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  return res.status(200).json({ data: req.user });
+};
+
 const editUserHandler = async (req: Request, res: Response) => {};
 
 //TODO: Add Editing Funcationality
@@ -158,4 +247,11 @@ const adminUserDeletionHandler = async (req: Request<{ id: string }>, res: Respo
   }
 };
 
-export { userRegistrationHandler, userLoginHandler, logoutUserHandler, adminUserDeletionHandler };
+export {
+  adminRegistrationHandler,
+  userRegistrationHandler,
+  userLoginHandler,
+  logoutUserHandler,
+  getCurrentUserHandler,
+  adminUserDeletionHandler,
+};
