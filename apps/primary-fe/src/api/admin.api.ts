@@ -456,3 +456,54 @@ export async function createResource(
   );
   return res.data.data;
 }
+
+// ============================================
+// Teacher Assignments
+// ============================================
+
+export interface TeacherAssignment {
+  id: string;
+  teacherId: string;
+  subjectId: string;
+  batchId: string;
+  teacher: { id: string; name: string; email: string };
+  subject: { id: string; name: string };
+}
+
+export interface CreateTeacherAssignmentInput {
+  teacherId: string;
+  subjectId: string;
+  batchId: string;
+}
+
+export interface TeacherAssignmentQueryParams {
+  batchId?: string;
+  teacherId?: string;
+  subjectId?: string;
+}
+
+export async function getTeacherAssignments(
+  params?: TeacherAssignmentQueryParams,
+): Promise<TeacherAssignment[]> {
+  const res = await api.get<ApiResponse<TeacherAssignment[]>>(
+    '/api/admin/teacher-assignments',
+    { params },
+  );
+  return res.data.data;
+}
+
+export async function createTeacherAssignment(
+  input: CreateTeacherAssignmentInput,
+): Promise<TeacherAssignment> {
+  const res = await api.post<ApiResponse<TeacherAssignment>>(
+    '/api/admin/teacher-assignments',
+    input,
+  );
+  return res.data.data;
+}
+
+export async function deleteTeacherAssignment(
+  assignmentId: string,
+): Promise<void> {
+  await api.delete(`/api/admin/teacher-assignments/${assignmentId}`);
+}

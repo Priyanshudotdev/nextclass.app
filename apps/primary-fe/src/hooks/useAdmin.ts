@@ -19,11 +19,13 @@ import type {
   CreateEnrollmentInput,
   CreateAttendanceInput,
   CreateResourceInput,
+  CreateTeacherAssignmentInput,
   UserQueryParams,
   CourseQueryParams,
   BatchQueryParams,
   AttendanceQueryParams,
   ResourceQueryParams,
+  TeacherAssignmentQueryParams,
 } from '@/api/admin.api';
 
 // ============================================
@@ -43,6 +45,8 @@ export const adminKeys = {
     [...adminKeys.all, 'batches', params] as const,
   subjects: () => [...adminKeys.all, 'subjects'] as const,
   enrollments: () => [...adminKeys.all, 'enrollments'] as const,
+  teacherAssignments: (params?: TeacherAssignmentQueryParams) =>
+    [...adminKeys.all, 'teacherAssignments', params] as const,
   attendance: (params?: AttendanceQueryParams) =>
     [...adminKeys.all, 'attendance', params] as const,
   resources: (params?: ResourceQueryParams) =>
@@ -405,6 +409,46 @@ export function useCreateResource() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.resources() });
       queryClient.invalidateQueries({ queryKey: adminKeys.dashboard() });
+    },
+  });
+}
+
+// ============================================
+// Teacher Assignments
+// ============================================
+
+export function useTeacherAssignments(params?: TeacherAssignmentQueryParams) {
+  return useQuery({
+    queryKey: adminKeys.teacherAssignments(params),
+    queryFn: () => adminApi.getTeacherAssignments(params),
+    enabled: !!params?.batchId, // Only fetch when batchId is provided
+  });
+}
+
+export function useCreateTeacherAssignment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreateTeacherAssignmentInput) =>
+      adminApi.createTeacherAssignment(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: adminKeys.teacherAssignments(),
+      });
+    },
+  });
+}
+
+export function useDeleteTeacherAssignment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (assignmentId: string) =>
+      adminApi.deleteTeacherAssignment(assignmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: adminKeys.teacherAssignments(),
+      });
     },
   });
 }

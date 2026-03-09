@@ -9,13 +9,24 @@ import {
   ParentDashboard,
 } from '@/app/pages/dashboard'
 import { LoginPage, RegisterPage, OnboardingPage, ForgotPasswordPage } from '@/app/pages/auth'
-import { CoursesPage } from '@/app/pages/courses'
-import { BatchesPage } from '@/app/pages/batches'
-import { StudentsPage } from '@/app/pages/students'
-import { TeachersPage } from '@/app/pages/teachers'
+import { CoursesPage, CourseDetailsPage } from '@/app/pages/courses'
+import { BatchesPage, BatchDetailsPage } from '@/app/pages/batches'
+import { StudentsPage, StudentDetailsPage } from '@/app/pages/students'
+import { TeachersPage, TeacherDetailsPage } from '@/app/pages/teachers'
+import { ParentsPage } from '@/app/pages/parents'
 import { AttendancePage } from '@/app/pages/attendance'
 import { ResourcesPage } from '@/app/pages/resources'
+import { AnnouncementsPage } from '@/app/pages/announcements'
+import { ChatPage } from '@/app/pages/chat'
+import { ReportsPage } from '@/app/pages/reports'
 import { SettingsPage } from '@/app/pages/settings'
+import {
+  ChildLayout,
+  ChildProfilePage,
+  ChildAttendancePage,
+  ChildResourcesPage,
+  ChildSchedulePage,
+} from '@/app/pages/parent/children'
 
 function DashboardRouter() {
   const { user, isLoading } = useAuth()
@@ -46,16 +57,6 @@ function DashboardRouter() {
   }
 }
 
-// Placeholder components for routes
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-      <h1 className="font-display text-2xl md:text-3xl">{title}</h1>
-      <p className="text-muted-foreground">This page is under construction.</p>
-    </div>
-  )
-}
-
 function App() {
   return (
     <Router>
@@ -72,24 +73,27 @@ function App() {
             <Route element={<AppLayout />}>
               <Route path="/" element={<DashboardRouter />} />
               <Route path="/courses" element={<CoursesPage />} />
-              <Route path="/courses/:id" element={<PlaceholderPage title="Course Details" />} />
+              <Route path="/courses/:id" element={<CourseDetailsPage />} />
               <Route path="/batches" element={<BatchesPage />} />
-              <Route path="/batches/:id" element={<PlaceholderPage title="Batch Details" />} />
+              <Route path="/batches/:id" element={<BatchDetailsPage />} />
               <Route path="/students" element={<StudentsPage />} />
-              <Route path="/students/:id" element={<PlaceholderPage title="Student Details" />} />
+              <Route path="/students/:id" element={<StudentDetailsPage />} />
               <Route path="/teachers" element={<TeachersPage />} />
-              <Route path="/teachers/:id" element={<PlaceholderPage title="Teacher Details" />} />
-              <Route path="/parents" element={<PlaceholderPage title="Parents" />} />
+              <Route path="/teachers/:id" element={<TeacherDetailsPage />} />
+              <Route path="/parents" element={<ParentsPage />} />
               <Route path="/attendance" element={<AttendancePage />} />
               <Route path="/resources" element={<ResourcesPage />} />
-              <Route path="/announcements" element={<PlaceholderPage title="Announcements" />} />
-              <Route path="/chat" element={<PlaceholderPage title="Chat" />} />
-              <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
+              <Route path="/announcements" element={<AnnouncementsPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/children/:id" element={<PlaceholderPage title="Child Profile" />} />
-              <Route path="/children/:id/attendance" element={<PlaceholderPage title="Child Attendance" />} />
-              <Route path="/children/:id/resources" element={<PlaceholderPage title="Child Resources" />} />
-              <Route path="/children/:id/schedule" element={<PlaceholderPage title="Child Schedule" />} />
+              {/* Child routes for parents */}
+              <Route path="/children/:id" element={<ChildLayout />}>
+                <Route index element={<ChildProfilePage />} />
+                <Route path="attendance" element={<ChildAttendancePage />} />
+                <Route path="resources" element={<ChildResourcesPage />} />
+                <Route path="schedule" element={<ChildSchedulePage />} />
+              </Route>
             </Route>
 
             {/* Catch-all redirect */}
