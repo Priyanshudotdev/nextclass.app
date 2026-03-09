@@ -56,6 +56,13 @@ router.post('/parent-students', adminService.linkParentStudent);
 router.delete('/parent-students/:linkId', adminService.unlinkParentStudent);
 
 // ============================================
+// Teacher Assignment Routes
+// ============================================
+router.get('/teacher-assignments', adminService.getTeacherAssignments);
+router.post('/teacher-assignments', adminService.createTeacherAssignment);
+router.delete('/teacher-assignments/:assignmentId', adminService.deleteTeacherAssignment);
+
+// ============================================
 // Attendance Management Routes
 // ============================================
 router.get('/attendance', adminService.getAttendance);

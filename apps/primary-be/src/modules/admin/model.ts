@@ -401,3 +401,35 @@ export interface AuditLogQueryParams {
   from?: string;
   to?: string;
 }
+
+// Teacher Assignment (TeacherSubject)
+export const teacherAssignmentSelect = {
+  id: true,
+  teacherId: true,
+  subjectId: true,
+  batchId: true,
+  teacher: { select: { id: true, name: true, email: true } },
+  subject: { select: { id: true, name: true } },
+} satisfies Prisma.TeacherSubjectSelect;
+
+export type TeacherAssignmentRow = Prisma.TeacherSubjectGetPayload<{
+  select: typeof teacherAssignmentSelect;
+}>;
+
+export interface CreateTeacherAssignmentInput {
+  teacherId: string;
+  subjectId: string;
+  batchId: string;
+}
+
+export type CreateTeacherAssignmentRequest = {
+  teacherId: string;
+  subjectId: string;
+  batchId: string;
+};
+
+export interface TeacherAssignmentQueryParams {
+  batchId?: string;
+  teacherId?: string;
+  subjectId?: string;
+}

@@ -1160,6 +1160,126 @@ export async function unlinkParentStudent(req: Request<{ linkId: string }>, res:
   return res.json({ message: 'Parent-student link removed successfully' });
 }
 
+// ============================================
+// Teacher Assignments (TeacherSubject)
+// ============================================
+
+async function svcGetTeacherAssignments(
+  instituteId: string,
+  filters?: Model.TeacherAssignmentQueryParams
+): Promise<Model.ServiceResult<Model.TeacherAssignmentRow[]>> {
+  try {
+    return Model.ok(
+      await prisma.teacherSubject.findMany({
+        where: {
+          instituteId,
+          ...(filters?.batchId && { batchId: filters.batchId }),
+          ...(filters?.teacherId && { teacherId: filters.teacherId }),
+          ...(filters?.subjectId && { subjectId: filters.subjectId }),
+        },
+        select: Model.teacherAssignmentSelect,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to fetch teacher assignments', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcCreateTeacherAssignment(
+  instituteId: string,
+  input: Model.CreateTeacherAssignmentInput
+): Promise<Model.ServiceResult<Model.TeacherAssignmentRow>> {
+  try {
+    // Verify teacher exists and is a teacher
+    const teacher = await prisma.user.findFirst({
+      where: { id: input.teacherId, instituteId, role: UserRole.TEACHER, isDeleted: false },
+    });
+    if (!teacher) return Model.fail('Teacher not found', 'NOT_FOUND');
+
+    // Verify batch exists
+    const batch = await prisma.batch.findFirst({
+      where: { id: input.batchId, instituteId, isDeleted: false },
+    });
+    if (!batch) return Model.fail('Batch not found', 'NOT_FOUND');
+
+    // Verify subject exists
+    const subject = await prisma.subject.findFirst({
+      where: { id: input.subjectId, instituteId },
+    });
+    if (!subject) return Model.fail('Subject not found', 'NOT_FOUND');
+
+    // Check if assignment already exists
+    const existing = await prisma.teacherSubject.findFirst({
+      where: {
+        teacherId: input.teacherId,
+        subjectId: input.subjectId,
+        batchId: input.batchId,
+      },
+    });
+    if (existing)
+      return Model.fail(
+        'Teacher is already assigned to this subject in this batch',
+        'ALREADY_EXISTS'
+      );
+
+    return Model.ok(
+      await prisma.teacherSubject.create({
+        data: { instituteId, ...input },
+        select: Model.teacherAssignmentSelect,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to create teacher assignment', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcDeleteTeacherAssignment(
+  assignmentId: string,
+  instituteId: string
+): Promise<Model.ServiceResult<null>> {
+  try {
+    const result = await prisma.teacherSubject.deleteMany({
+      where: { id: assignmentId, instituteId },
+    });
+    return result.count === 0
+      ? Model.fail('Teacher assignment not found', 'NOT_FOUND')
+      : Model.ok(null);
+  } catch {
+    return Model.fail('Failed to delete teacher assignment', 'INTERNAL_ERROR');
+  }
+}
+
+export async function getTeacherAssignments(
+  req: Request<unknown, unknown, unknown, Model.TeacherAssignmentQueryParams>,
+  res: Response
+) {
+  return send(res, await svcGetTeacherAssignments(req.user!.instituteId, req.query));
+}
+
+export async function createTeacherAssignment(
+  req: Request<unknown, unknown, Model.CreateTeacherAssignmentRequest>,
+  res: Response
+) {
+  const { teacherId, subjectId, batchId } = req.body;
+  if (!teacherId || !subjectId || !batchId) {
+    return res.status(400).json({ error: 'teacherId, subjectId, and batchId are required' });
+  }
+  return send(
+    res,
+    await svcCreateTeacherAssignment(req.user!.instituteId, { teacherId, subjectId, batchId }),
+    201
+  );
+}
+
+export async function deleteTeacherAssignment(
+  req: Request<{ assignmentId: string }>,
+  res: Response
+) {
+  const result = await svcDeleteTeacherAssignment(req.params.assignmentId, req.user!.instituteId);
+  if (!result.success) return send(res, result);
+  return res.json({ message: 'Teacher assignment deleted successfully' });
+}
+
 export async function getDashboardStats(req: Request, res: Response) {
   return send(res, await svcGetDashboardStats(req.user!.instituteId));
 }
