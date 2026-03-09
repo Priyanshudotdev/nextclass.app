@@ -26,8 +26,8 @@ export function QuickAction({
     <Link
       to={href}
       className={cn(
-        'group flex items-center gap-3 rounded-lg border p-3 transition-all hover:border-foreground/20 hover:bg-muted/50',
-        variant === 'primary' && 'border-foreground/10 bg-foreground text-background hover:bg-foreground/90',
+        'group flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:bg-muted/50',
+        variant === 'primary' && 'border-primary/10 bg-primary text-primary-foreground hover:bg-primary/90',
         variant === 'warning' && 'border-amber-500/20 bg-amber-500/10',
         variant === 'muted' && 'bg-muted/30',
         className
@@ -35,9 +35,9 @@ export function QuickAction({
     >
       <div
         className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-lg',
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
           variant === 'default' && 'bg-muted',
-          variant === 'primary' && 'bg-background/10',
+          variant === 'primary' && 'bg-primary-foreground/10',
           variant === 'warning' && 'bg-amber-500/20',
           variant === 'muted' && 'bg-muted'
         )}
@@ -46,7 +46,7 @@ export function QuickAction({
           className={cn(
             'h-5 w-5',
             variant === 'default' && 'text-muted-foreground',
-            variant === 'primary' && 'text-background/80',
+            variant === 'primary' && 'text-primary-foreground/80',
             variant === 'warning' && 'text-amber-600',
             variant === 'muted' && 'text-muted-foreground'
           )}
@@ -58,7 +58,7 @@ export function QuickAction({
           <h4
             className={cn(
               'font-medium',
-              variant === 'primary' && 'text-background'
+              variant === 'primary' && 'text-primary-foreground'
             )}
           >
             {title}
@@ -80,7 +80,7 @@ export function QuickAction({
           <p
             className={cn(
               'text-xs',
-              variant === 'primary' ? 'text-background/60' : 'text-muted-foreground'
+              variant === 'primary' ? 'text-primary-foreground/60' : 'text-muted-foreground'
             )}
           >
             {description}
@@ -91,7 +91,7 @@ export function QuickAction({
       <ArrowRight
         className={cn(
           'h-4 w-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100',
-          variant === 'primary' ? 'text-background/60' : 'text-muted-foreground'
+          variant === 'primary' ? 'text-primary-foreground/60' : 'text-muted-foreground'
         )}
       />
     </Link>

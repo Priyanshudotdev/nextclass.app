@@ -27,9 +27,9 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'rounded-xl border p-5',
+        'rounded-xl border p-4',
         variant === 'default' && 'bg-card',
-        variant === 'highlight' && 'bg-foreground text-background',
+        variant === 'highlight' && 'bg-primary text-primary-foreground',
         variant === 'muted' && 'bg-muted/30',
         className
       )}
@@ -40,7 +40,7 @@ export function StatCard({
             className={cn(
               'text-xs font-medium uppercase tracking-wider',
               variant === 'highlight'
-                ? 'text-background/70'
+                ? 'text-primary-foreground/70'
                 : 'text-muted-foreground'
             )}
           >
@@ -52,7 +52,7 @@ export function StatCard({
               className={cn(
                 'text-sm',
                 variant === 'highlight'
-                  ? 'text-background/70'
+                  ? 'text-primary-foreground/70'
                   : 'text-muted-foreground'
               )}
             >
@@ -65,7 +65,7 @@ export function StatCard({
             className={cn(
               'rounded-lg p-2',
               variant === 'highlight'
-                ? 'bg-background/10'
+                ? 'bg-primary-foreground/10'
                 : 'bg-muted'
             )}
           >
@@ -73,7 +73,7 @@ export function StatCard({
               className={cn(
                 'h-5 w-5',
                 variant === 'highlight'
-                  ? 'text-background/70'
+                  ? 'text-primary-foreground/70'
                   : 'text-muted-foreground'
               )}
             />
@@ -94,7 +94,7 @@ export function StatCard({
             className={cn(
               'text-xs',
               variant === 'highlight'
-                ? 'text-background/50'
+                ? 'text-primary-foreground/50'
                 : 'text-muted-foreground'
             )}
           >

@@ -22,7 +22,7 @@ export function ScheduleItem({
     <div
       className={cn(
         'flex items-start gap-4 rounded-lg border p-3 transition-colors',
-        status === 'ongoing' && 'border-foreground/20 bg-foreground/5',
+        status === 'ongoing' && 'border-primary/20 bg-primary/5',
         status === 'completed' && 'opacity-60',
         className
       )}

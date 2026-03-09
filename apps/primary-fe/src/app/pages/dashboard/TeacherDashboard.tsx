@@ -10,10 +10,10 @@ import { StatCard, QuickAction } from './components'
 
 export function TeacherDashboard() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="font-display text-2xl md:text-3xl">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Welcome back! Here's your teaching overview.
         </p>
@@ -48,25 +48,25 @@ export function TeacherDashboard() {
         {/* Left Column */}
         <div className="space-y-6 lg:col-span-2">
           {/* Today's Schedule */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <div className="mb-4">
               <h3 className="font-medium">Today's Schedule</h3>
-              <p className="text-xs text-muted-foreground">Your classes for today</p>
+              <p className="text-sm text-muted-foreground">Your classes for today</p>
             </div>
-            <div className="py-8 text-center text-muted-foreground">
+            <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No classes scheduled for today</p>
             </div>
           </div>
 
           {/* My Batches */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-medium">My Batches</h3>
-              <Link to="/batches" className="text-xs text-muted-foreground hover:underline">
+              <Link to="/batches" className="text-sm text-primary hover:underline">
                 View All
               </Link>
             </div>
-            <div className="py-8 text-center text-muted-foreground">
+            <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No batches assigned yet</p>
             </div>
           </div>
@@ -75,13 +75,14 @@ export function TeacherDashboard() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
             <QuickAction
               title="Mark Attendance"
               description="Mark today's attendance"
               icon={CalendarCheck}
               href="/attendance"
+              variant="primary"
             />
             <QuickAction
               title="Upload Resource"
@@ -99,8 +100,8 @@ export function TeacherDashboard() {
 
           {/* Recent Messages */}
           <div className="rounded-xl border p-4">
-            <h3 className="mb-3 text-sm font-medium">Recent Messages</h3>
-            <div className="py-4 text-center text-sm text-muted-foreground">
+            <h3 className="mb-4 text-sm font-medium">Recent Messages</h3>
+            <div className="flex min-h-24 items-center justify-center text-sm text-muted-foreground">
               <p>No recent messages</p>
             </div>
           </div>

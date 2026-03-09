@@ -8,10 +8,10 @@ import { QuickAction } from './components'
 
 export function ParentDashboard() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="font-display text-2xl md:text-3xl">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Monitor your child's progress and activities.
         </p>
@@ -22,25 +22,25 @@ export function ParentDashboard() {
         {/* Left Column */}
         <div className="space-y-6 lg:col-span-2">
           {/* Children Info */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <h3 className="mb-4 font-medium">My Children</h3>
-            <div className="py-8 text-center text-muted-foreground">
+            <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No children linked to your account</p>
             </div>
           </div>
 
           {/* Enrolled Batches */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <h3 className="mb-4 font-medium">Enrolled Batches</h3>
-            <div className="py-8 text-center text-muted-foreground">
+            <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No batches enrolled</p>
             </div>
           </div>
 
           {/* Assigned Teachers */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <h3 className="mb-4 font-medium">Assigned Teachers</h3>
-            <div className="py-8 text-center text-muted-foreground">
+            <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No teachers assigned</p>
             </div>
           </div>
@@ -49,13 +49,14 @@ export function ParentDashboard() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
             <QuickAction
               title="View Attendance"
               description="Check attendance history"
               icon={TrendingUp}
               href="/attendance"
+              variant="primary"
             />
             <QuickAction
               title="View Resources"
@@ -73,21 +74,21 @@ export function ParentDashboard() {
 
           {/* Recent Resources */}
           <div className="rounded-xl border p-4">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-medium">Recent Resources</h3>
-              <Link to="/resources" className="text-xs text-muted-foreground hover:underline">
+              <Link to="/resources" className="text-sm text-primary hover:underline">
                 View All
               </Link>
             </div>
-            <div className="py-4 text-center text-sm text-muted-foreground">
+            <div className="flex min-h-24 items-center justify-center text-sm text-muted-foreground">
               <p>No resources available</p>
             </div>
           </div>
 
           {/* Announcements */}
           <div className="rounded-xl border p-4">
-            <h3 className="mb-3 text-sm font-medium">Announcements</h3>
-            <div className="py-4 text-center text-sm text-muted-foreground">
+            <h3 className="mb-4 text-sm font-medium">Announcements</h3>
+            <div className="flex min-h-24 items-center justify-center text-sm text-muted-foreground">
               <p>No announcements</p>
             </div>
           </div>

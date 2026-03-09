@@ -35,10 +35,10 @@ export function AdminDashboard() {
     : 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="font-display text-2xl md:text-3xl">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Welcome back! Here's your institute at a glance.
         </p>
@@ -80,13 +80,14 @@ export function AdminDashboard() {
         <div className="space-y-6 lg:col-span-2">
           {/* Quick Management Actions */}
           <div>
-            <h3 className="mb-3 text-sm font-medium text-muted-foreground">Quick Management</h3>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <h3 className="mb-4 text-sm font-medium text-muted-foreground">Quick Management</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
               <QuickAction
                 title="Manage Courses"
                 description="Edit curriculum & modules"
                 icon={BookOpen}
                 href="/courses"
+                variant="primary"
               />
               <QuickAction
                 title="Manage Batches"
@@ -110,7 +111,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Stats Summary */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <h3 className="mb-4 font-medium">Institute Summary</h3>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="text-center">
@@ -132,7 +133,7 @@ export function AdminDashboard() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* Today's Overview */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <h3 className="mb-4 font-medium">Today's Overview</h3>
             {stats?.attendanceToday?.total ? (
               <div className="flex items-center justify-around">
@@ -141,26 +142,26 @@ export function AdminDashboard() {
                   size="md"
                   label="Attendance"
                 />
-                <div className="space-y-3 text-center">
+                <div className="space-y-4 text-center">
                   <div>
                     <p className="font-mono text-2xl font-bold">{stats.attendanceToday.present}</p>
-                    <p className="text-xs text-muted-foreground">Present</p>
+                    <p className="text-sm text-muted-foreground">Present</p>
                   </div>
                   <div>
                     <p className="font-mono text-2xl font-bold text-red-500">{stats.attendanceToday.absent}</p>
-                    <p className="text-xs text-muted-foreground">Absent</p>
+                    <p className="text-sm text-muted-foreground">Absent</p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="py-8 text-center text-muted-foreground">
+              <div className="flex min-h-32 items-center justify-center text-muted-foreground">
                 <p>No attendance data for today</p>
               </div>
             )}
           </div>
 
           {/* Recent Activity Summary */}
-          <div className="rounded-xl border p-5">
+          <div className="rounded-xl border p-6">
             <h3 className="mb-4 font-medium">Recent Activity</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
