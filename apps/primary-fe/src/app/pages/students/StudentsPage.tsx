@@ -278,11 +278,11 @@ export function StudentsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl">Students</h1>
+          <h1 className="text-2xl font-semibold">Students</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage enrolled students across all batches.
           </p>
@@ -492,7 +492,7 @@ export function StudentsPage() {
             </div>
           )}
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="overflow-x-auto p-0">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

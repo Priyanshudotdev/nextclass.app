@@ -142,11 +142,11 @@ export function BatchesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl">Batches</h1>
+          <h1 className="text-2xl font-semibold">Batches</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage batches and student groups.
           </p>
