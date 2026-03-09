@@ -129,7 +129,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel - Branding */}
-      <div className="hidden w-[40%] flex-col justify-between bg-foreground p-8 text-background lg:flex">
+      <div className="hidden w-[40%] flex-col justify-between bg-primary p-8 text-primary-foreground lg:flex">
         <div>
           <h1 className="font-display text-2xl font-semibold">NextClass</h1>
         </div>
@@ -141,28 +141,28 @@ export function LoginPage() {
             fully in control.
           </h2>
 
-          <ul className="space-y-3 text-background/80">
+          <ul className="space-y-3 text-primary-foreground/80">
             <li className="flex items-center gap-3">
-              <Check className="h-4 w-4 text-background/60" />
+              <Check className="h-4 w-4 text-primary-foreground/60" />
               <span>Trusted by 200+ coaching centers</span>
             </li>
             <li className="flex items-center gap-3">
-              <Check className="h-4 w-4 text-background/60" />
+              <Check className="h-4 w-4 text-primary-foreground/60" />
               <span>Attendance, resources, chat — all in one place</span>
             </li>
             <li className="flex items-center gap-3">
-              <Check className="h-4 w-4 text-background/60" />
+              <Check className="h-4 w-4 text-primary-foreground/60" />
               <span>Built for IIT/JEE & NEET institutes</span>
             </li>
           </ul>
         </div>
 
-        <div className="h-px w-full bg-background/10" />
+        <div className="h-px w-full bg-primary-foreground/10" />
       </div>
 
       {/* Right Panel - Login Form */}
       <div className="flex flex-1 items-center justify-center p-8">
-        <div className="w-full max-w-[420px] space-y-8">
+        <div className="w-full max-w-md space-y-8">
           {/* Mobile Logo */}
           <div className="lg:hidden">
             <h1 className="font-display text-2xl font-semibold">NextClass</h1>
@@ -230,7 +230,7 @@ export function LoginPage() {
                 <div className="flex justify-end">
                   <Link
                     to="/forgot-password"
-                    className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                    className="text-xs text-muted-foreground hover:text-primary hover:underline"
                   >
                     Forgot password?
                   </Link>
@@ -334,7 +334,7 @@ export function LoginPage() {
                     'text-sm',
                     resendTimer > 0
                       ? 'text-muted-foreground'
-                      : 'text-foreground hover:underline'
+                      : 'text-primary hover:underline'
                   )}
                 >
                   {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
@@ -358,7 +358,7 @@ export function LoginPage() {
           {/* Registration Link */}
           <div className="text-center text-sm">
             <span className="text-muted-foreground">Registering a new institute? </span>
-            <Link to="/register" className="font-medium text-foreground hover:underline">
+            <Link to="/register" className="font-medium text-primary hover:underline">
               Create your institute →
             </Link>
           </div>

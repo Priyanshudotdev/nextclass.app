@@ -74,7 +74,7 @@ export function OnboardingPage() {
         <div className="space-y-8">
           {/* Welcome Header */}
           <div className="space-y-3 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-foreground text-background">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Sparkles className="h-8 w-8" />
             </div>
             <h2 className="font-display text-3xl font-semibold">
@@ -93,7 +93,7 @@ export function OnboardingPage() {
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full bg-foreground transition-all duration-500"
+                className="h-full bg-primary transition-all duration-500"
                 style={{ width: `${(completedCount / tasks.length) * 100}%` }}
               />
             </div>
@@ -117,8 +117,8 @@ export function OnboardingPage() {
                     className={cn(
                       'flex h-12 w-12 items-center justify-center rounded-lg transition-colors',
                       task.completed
-                        ? 'bg-foreground text-background'
-                        : 'bg-muted group-hover:bg-foreground/10'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted group-hover:bg-primary/10'
                     )}
                   >
                     {task.completed ? (
@@ -134,7 +134,7 @@ export function OnboardingPage() {
                         STEP {index + 1}
                       </span>
                       {task.completed && (
-                        <span className="rounded bg-foreground/10 px-1.5 py-0.5 text-xs font-medium">
+                        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
                           Completed
                         </span>
                       )}
@@ -153,8 +153,8 @@ export function OnboardingPage() {
 
           {/* All Complete Message */}
           {allCompleted && (
-            <div className="rounded-xl border border-foreground/10 bg-foreground/5 p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background">
+            <div className="rounded-xl border border-primary/10 bg-primary/5 p-6 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Check className="h-6 w-6" />
               </div>
               <h3 className="font-display text-xl font-semibold">
@@ -173,11 +173,11 @@ export function OnboardingPage() {
           {/* Help Link */}
           <p className="text-center text-sm text-muted-foreground">
             Need help?{' '}
-            <a href="#" className="text-foreground underline hover:no-underline">
+            <a href="#" className="text-primary underline hover:no-underline">
               Read our setup guide
             </a>{' '}
             or{' '}
-            <a href="#" className="text-foreground underline hover:no-underline">
+            <a href="#" className="text-primary underline hover:no-underline">
               contact support
             </a>
           </p>

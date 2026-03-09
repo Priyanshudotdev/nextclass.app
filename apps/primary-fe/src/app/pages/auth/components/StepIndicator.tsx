@@ -22,8 +22,8 @@ export function StepIndicator({ currentStep, totalSteps, className }: StepIndica
             <div
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors',
-                isCompleted && 'border-foreground bg-foreground text-background',
-                isCurrent && 'border-foreground bg-foreground text-background',
+                isCompleted && 'border-primary bg-primary text-primary-foreground',
+                isCurrent && 'border-primary bg-primary text-primary-foreground',
                 isUpcoming && 'border-muted-foreground/30 bg-transparent text-muted-foreground'
               )}
             >
@@ -39,7 +39,7 @@ export function StepIndicator({ currentStep, totalSteps, className }: StepIndica
               <div
                 className={cn(
                   'mx-2 h-0.5 w-8 transition-colors',
-                  stepNumber < currentStep ? 'bg-foreground' : 'bg-muted-foreground/30'
+                  stepNumber < currentStep ? 'bg-primary' : 'bg-muted-foreground/30'
                 )}
               />
             )}

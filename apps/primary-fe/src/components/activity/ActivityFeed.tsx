@@ -58,7 +58,7 @@ export function ActivityFeed({
         {showViewAll && onViewAll && (
           <button
             onClick={onViewAll}
-            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+            className="text-sm text-primary underline-offset-4 hover:underline"
           >
             View All
           </button>

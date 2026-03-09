@@ -29,10 +29,10 @@ export function SettingsPage() {
   const institute = user?.institute
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="font-display text-2xl md:text-3xl">Settings</h1>
+        <h1 className="text-2xl font-semibold">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Manage your account and preferences.
         </p>

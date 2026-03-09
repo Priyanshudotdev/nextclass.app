@@ -190,7 +190,7 @@ export function RegisterPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel - Progress */}
-      <div className="hidden w-[40%] flex-col justify-between bg-foreground p-8 text-background lg:flex">
+      <div className="hidden w-[40%] flex-col justify-between bg-primary p-8 text-primary-foreground lg:flex">
         <div>
           <h1 className="font-display text-2xl font-semibold">NextClass</h1>
         </div>
@@ -215,21 +215,21 @@ export function RegisterPage() {
                   key={label}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-4 py-3 transition-colors',
-                    isCurrent && 'bg-background/10',
-                    isCompleted && 'text-background/80'
+                    isCurrent && 'bg-primary-foreground/10',
+                    isCompleted && 'text-primary-foreground/80'
                   )}
                 >
                   <div
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium',
-                      isCompleted && 'bg-background/20 text-background',
-                      isCurrent && 'bg-background text-foreground',
-                      isPending && 'bg-background/10 text-background/50'
+                      isCompleted && 'bg-primary-foreground/20 text-primary-foreground',
+                      isCurrent && 'bg-primary-foreground text-primary',
+                      isPending && 'bg-primary-foreground/10 text-primary-foreground/50'
                     )}
                   >
                     {isCompleted ? <Check className="h-4 w-4" /> : stepNum}
                   </div>
-                  <span className={cn(isPending && 'text-background/50')}>
+                  <span className={cn(isPending && 'text-primary-foreground/50')}>
                     {label}
                   </span>
                 </div>
@@ -238,12 +238,12 @@ export function RegisterPage() {
           </div>
         </div>
 
-        <div className="h-px w-full bg-background/10" />
+        <div className="h-px w-full bg-primary-foreground/10" />
       </div>
 
       {/* Right Panel - Form */}
       <div className="flex flex-1 items-center justify-center p-8">
-        <div className="w-full max-w-[480px] space-y-8">
+        <div className="w-full max-w-lg space-y-8">
           {/* Mobile Logo & Progress */}
           <div className="lg:hidden">
             <Link to="/" className="mb-6 inline-block">
@@ -525,9 +525,9 @@ export function RegisterPage() {
                     </div>
                     <p className="text-muted-foreground">
                       I agree to the{' '}
-                      <a href="#" className="underline hover:text-foreground">Terms of Service</a>
+                      <a href="#" className="underline hover:text-primary">Terms of Service</a>
                       {' '}and{' '}
-                      <a href="#" className="underline hover:text-foreground">Privacy Policy</a>
+                      <a href="#" className="underline hover:text-primary">Privacy Policy</a>
                     </p>
                   </div>
                 </label>
@@ -585,7 +585,7 @@ export function RegisterPage() {
           {/* Login Link */}
           <div className="text-center text-sm">
             <span className="text-muted-foreground">Already have an account? </span>
-            <Link to="/login" className="font-medium text-foreground hover:underline">
+            <Link to="/login" className="font-medium text-primary hover:underline">
               Sign in
             </Link>
           </div>

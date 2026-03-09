@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className={cn('space-y-4', className)}>
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-xl border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -198,7 +198,7 @@ function DataTableSkeleton({
   className?: string
 }) {
   return (
-    <div className={cn('rounded-md border', className)}>
+    <div className={cn('overflow-x-auto rounded-xl border', className)}>
       <Table>
         <TableHeader>
           <TableRow>

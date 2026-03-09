@@ -57,7 +57,6 @@ export function AttendancePage() {
 
   const batches = batchesData || []
   const students = studentsData || []
-  const existingAttendance = attendanceData || []
 
   // Set default batch when batches load
   useEffect(() => {
@@ -68,12 +67,13 @@ export function AttendancePage() {
 
   // Load existing attendance when batch/date changes
   useEffect(() => {
+    if (!attendanceData) return
     const newAttendance: Record<string, AttendanceStatus> = {}
-    existingAttendance.forEach((record: Attendance) => {
+    attendanceData.forEach((record: Attendance) => {
       newAttendance[record.student.id] = record.status as AttendanceStatus
     })
     setAttendance(newAttendance)
-  }, [existingAttendance])
+  }, [attendanceData])
 
   const handleAttendanceChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance((prev) => ({ ...prev, [studentId]: status }))
@@ -132,11 +132,11 @@ export function AttendancePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl">Attendance</h1>
+          <h1 className="text-2xl font-semibold">Attendance</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {isTeacherOrAdmin ? 'Mark and manage attendance records.' : 'View your attendance history.'}
           </p>
@@ -235,7 +235,7 @@ export function AttendancePage() {
                   </Button>
                 </div>
               )}
-              <div className="rounded-lg border">
+              <div className="overflow-x-auto rounded-xl border">
                 <Table>
                   <TableHeader>
                     <TableRow>

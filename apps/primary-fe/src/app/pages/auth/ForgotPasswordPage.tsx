@@ -37,7 +37,7 @@ export function ForgotPasswordPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel - Branding */}
-      <div className="hidden w-[40%] flex-col justify-between bg-foreground p-8 text-background lg:flex">
+      <div className="hidden w-[40%] flex-col justify-between bg-primary p-8 text-primary-foreground lg:flex">
         <div>
           <h1 className="font-display text-2xl font-semibold">NextClass</h1>
         </div>
@@ -48,17 +48,17 @@ export function ForgotPasswordPage() {
             <br />
             password
           </h2>
-          <p className="text-background/70">
+          <p className="text-primary-foreground/70">
             Enter your email and we'll send you a link to reset your password.
           </p>
         </div>
 
-        <div className="h-px w-full bg-background/10" />
+        <div className="h-px w-full bg-primary-foreground/10" />
       </div>
 
       {/* Right Panel - Form */}
       <div className="flex flex-1 items-center justify-center p-8">
-        <div className="w-full max-w-[420px] space-y-8">
+        <div className="w-full max-w-md space-y-8">
           {/* Mobile Logo */}
           <div className="lg:hidden">
             <Link to="/">
@@ -104,7 +104,7 @@ export function ForgotPasswordPage() {
               <div className="text-center">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to Sign In
@@ -115,8 +115,8 @@ export function ForgotPasswordPage() {
             <>
               {/* Success State */}
               <div className="space-y-6 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-foreground/10">
-                  <CheckCircle2 className="h-8 w-8 text-foreground" />
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <CheckCircle2 className="h-8 w-8 text-primary" />
                 </div>
 
                 <div className="space-y-2">
@@ -136,7 +136,7 @@ export function ForgotPasswordPage() {
                         Check your spam folder or{' '}
                         <button
                           onClick={() => setState('form')}
-                          className="text-foreground underline hover:no-underline"
+                          className="text-primary underline hover:no-underline"
                         >
                           try another email address
                         </button>
