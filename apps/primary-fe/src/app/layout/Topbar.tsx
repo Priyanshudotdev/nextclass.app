@@ -72,7 +72,7 @@ export function Topbar({ onMenuClick, isMobile }: TopbarProps) {
         {isMobile && (
           <button
             onClick={onMenuClick}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-[hsl(var(--muted))] hover:text-foreground"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors cursor-pointer hover:bg-[hsl(var(--muted))] hover:text-foreground"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -87,7 +87,7 @@ export function Topbar({ onMenuClick, isMobile }: TopbarProps) {
               placeholder="Search students, courses..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-[280px] pl-9 md:w-[360px] lg:w-[480px]"
+              className="w-72 pl-9 md:w-96 lg:w-120"
             />
           </div>
         </div>

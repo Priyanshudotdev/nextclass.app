@@ -82,7 +82,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       className={cn(
         'fixed left-0 top-0 z-40 h-screen border-r transition-all duration-300 ease-in-out',
         'bg-[hsl(var(--sidebar-bg))] border-[hsl(var(--sidebar-border))]',
-        isCollapsed ? 'w-[60px]' : 'w-[240px]'
+        isCollapsed ? 'w-16' : 'w-60'
       )}
     >
       <div className="flex h-full flex-col">
@@ -90,13 +90,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         <div
           className={cn(
             'flex h-16 items-center border-b border-[hsl(var(--sidebar-border))]',
-            isCollapsed ? 'justify-center px-2' : 'justify-between px-4'
+            isCollapsed ? 'justify-center px-3' : 'justify-between px-4'
           )}
         >
           {!isCollapsed && (
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[hsl(var(--foreground))]">
-                <span className="text-sm font-bold text-[hsl(var(--background))]">N</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
+                <span className="text-sm font-bold text-primary-foreground">N</span>
               </div>
               <span className="font-display text-lg">NextClass</span>
             </Link>
@@ -104,7 +104,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           <button
             onClick={onToggle}
             className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+              'flex h-8 w-8 items-center justify-center rounded-md transition-colors cursor-pointer',
               'hover:bg-[hsl(var(--sidebar-hover-bg))] text-[hsl(var(--sidebar-text))]',
               isCollapsed && 'rotate-180'
             )}
@@ -115,7 +115,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
         {/* Navigation */}
         <ScrollArea className="flex-1 py-4">
-          <nav className="space-y-1 px-2">
+          <nav className="space-y-1 px-3">
             {filteredItems.map((item) => {
               const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
               const Icon = item.icon
@@ -124,14 +124,14 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 <Link
                   to={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer',
                     isActive
-                      ? 'bg-[hsl(var(--sidebar-active-bg))] text-[hsl(var(--sidebar-active-text))]'
-                      : 'text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--sidebar-active-text))]',
-                    isCollapsed && 'justify-center px-2'
+                      ? 'bg-primary/10 text-primary border-l-2 border-primary'
+                      : 'text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-primary',
+                    isCollapsed && 'justify-center px-3'
                   )}
                 >
-                  <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-[hsl(var(--sidebar-active-text))]')} />
+                  <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
                   {!isCollapsed && (
                     <>
                       <span className="flex-1">{item.title}</span>
@@ -167,13 +167,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         </ScrollArea>
 
         {/* User Profile */}
-        <div className="border-t border-[hsl(var(--sidebar-border))] p-3">
+        <div className="border-t border-[hsl(var(--sidebar-border))] p-4">
           {isCollapsed ? (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <button
                   onClick={() => logout()}
-                  className="flex w-full items-center justify-center rounded-md p-2 transition-colors hover:bg-[hsl(var(--sidebar-hover-bg))]"
+                  className="flex w-full items-center justify-center rounded-md p-2 transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))]"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-[hsl(var(--muted))] text-xs font-medium">
@@ -202,7 +202,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => logout()}
-                    className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-colors hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--destructive))]"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--destructive))]"
                   >
                     <LogOut className="h-4 w-4" />
                   </button>
@@ -247,19 +247,19 @@ export function MobileSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: (
       <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 h-screen w-[280px] bg-[hsl(var(--sidebar-bg))] shadow-xl">
+      <aside className="fixed left-0 top-0 z-50 h-screen w-72 bg-[hsl(var(--sidebar-bg))] shadow-xl">
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-between border-b border-[hsl(var(--sidebar-border))] px-4">
             <Link to="/dashboard" className="flex items-center gap-2" onClick={onClose}>
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[hsl(var(--foreground))]">
-                <span className="text-sm font-bold text-[hsl(var(--background))]">N</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
+                <span className="text-sm font-bold text-primary-foreground">N</span>
               </div>
               <span className="font-display text-lg">NextClass</span>
             </Link>
             <button
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-colors hover:bg-[hsl(var(--sidebar-hover-bg))]"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))]"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -278,10 +278,10 @@ export function MobileSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     to={item.href}
                     onClick={onClose}
                     className={cn(
-                      'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
+                      'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer',
                       isActive
-                        ? 'bg-[hsl(var(--sidebar-active-bg))] text-[hsl(var(--sidebar-active-text))]'
-                        : 'text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--sidebar-active-text))]'
+                        ? 'bg-primary/10 text-primary border-l-2 border-primary'
+                        : 'text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-primary'
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
@@ -315,7 +315,7 @@ export function MobileSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   logout()
                   onClose()
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--destructive))]"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--destructive))]"
               >
                 <LogOut className="h-4 w-4" />
               </button>

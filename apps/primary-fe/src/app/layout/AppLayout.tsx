@@ -19,12 +19,12 @@ export function AppLayout() {
       <div
         className={cn(
           'flex min-h-screen flex-col transition-all duration-300 ease-in-out',
-          !isMobile && (isCollapsed ? 'ml-[60px]' : 'ml-[240px]')
+          !isMobile && (isCollapsed ? 'ml-16' : 'ml-60')
         )}
       >
         <Topbar onMenuClick={toggle} isMobile={isMobile} />
 
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 px-6 py-6">
           <Outlet />
         </main>
       </div>
