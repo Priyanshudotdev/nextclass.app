@@ -57,15 +57,19 @@ import {
   Download,
   Mail,
   Loader2,
+  MapPin,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { useIsMobile } from '@/hooks/use-sidebar'
 import { getInitials } from '@/lib/utils'
 import { useStudents, useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks/useAdmin'
+import { MobileDataCard, MobileDataCardList, MobileDataCardSkeleton } from '@/components/tables/MobileDataCard'
 import { toast } from 'sonner'
 import type { User } from '@/api/admin.api'
 
 export function StudentsPage() {
   const { user } = useAuth()
+  const isMobile = useIsMobile()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = useState({})
@@ -278,11 +282,11 @@ export function StudentsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Students</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">Students</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage enrolled students across all batches.
           </p>
@@ -419,116 +423,171 @@ export function StudentsPage() {
       </Dialog>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
-              <Users className="h-5 w-5 text-muted-foreground" />
+          <CardContent className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Students</p>
-              <p className="font-stat text-2xl font-semibold">{students.length}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
+              <p className="font-stat text-lg sm:text-2xl font-semibold">{students.length}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
-              <Users className="h-5 w-5 text-muted-foreground" />
+          <CardContent className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Active Students</p>
-              <p className="font-stat text-2xl font-semibold">
+              <p className="text-xs sm:text-sm text-muted-foreground">Active</p>
+              <p className="font-stat text-lg sm:text-2xl font-semibold">
                 {students.filter((s: User) => s.status?.toLowerCase() === 'active').length}
               </p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
-              <Users className="h-5 w-5 text-muted-foreground" />
+          <CardContent className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Inactive</p>
-              <p className="font-stat text-2xl font-semibold">
+              <p className="text-xs sm:text-sm text-muted-foreground">Inactive</p>
+              <p className="font-stat text-lg sm:text-2xl font-semibold">
                 {students.filter((s: User) => s.status?.toLowerCase() !== 'active').length}
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
-      {/* Filters & Table */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by name..."
-                value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-                onChange={(e) => table.getColumn('name')?.setFilterValue(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-37.5">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Filters & Data */}
+      <div className="space-y-4">
+        {/* Filters */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name..."
+              value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+              onChange={(e) => table.getColumn('name')?.setFilterValue(e.target.value)}
+              className="pl-9"
+            />
           </div>
-          {Object.keys(rowSelection).length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {Object.keys(rowSelection).length} selected
-              <Button variant="ghost" size="sm">
-                <Mail className="mr-2 h-4 w-4" />
-                Send Email
-              </Button>
-            </div>
-          )}
-        </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {!isMobile && Object.keys(rowSelection).length > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {Object.keys(rowSelection).length} selected
+            <Button variant="ghost" size="sm">
+              <Mail className="mr-2 h-4 w-4" />
+              Send Email
+            </Button>
+          </div>
+        )}
+
+        {/* Mobile Card View */}
+        {isMobile ? (
+          <MobileDataCardList>
+            {filteredData.length > 0 ? (
+              filteredData.map((student: User) => (
+                <MobileDataCard
+                  key={student.id}
+                  initials={getInitials(student.name)}
+                  title={student.name}
+                  subtitle={student.email}
+                  href={`/students/${student.id}`}
+                  status={{
+                    label: student.status || 'Unknown',
+                    variant: student.status?.toLowerCase() === 'active' ? 'default' : 'secondary',
+                  }}
+                  metadata={student.city ? [
+                    { value: `${student.city}${student.state ? `, ${student.state}` : ''}`, icon: <MapPin /> }
+                  ] : undefined}
+                  actions={isAdmin ? [
+                    { label: 'View Profile', href: `/students/${student.id}` },
+                    { label: 'Send Email', icon: <Mail />, onClick: () => {} },
+                    {
+                      label: 'Edit',
+                      icon: <Pencil />,
+                      onClick: () => {
+                        setEditingStudent({ id: student.id, name: student.name, email: student.email })
+                        setIsEditDialogOpen(true)
+                      },
+                    },
+                    {
+                      label: 'Remove',
+                      icon: <Trash2 />,
+                      variant: 'destructive',
+                      onClick: () => handleDeleteStudent(student.id),
+                    },
+                  ] : [
+                    { label: 'View Profile', href: `/students/${student.id}` },
+                    { label: 'Send Email', icon: <Mail />, onClick: () => {} },
+                  ]}
+                  showActions={true}
+                />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Users className="h-12 w-12 text-muted-foreground" />
+                <p className="mt-4 text-sm text-muted-foreground">No students found.</p>
+              </div>
+            )}
+          </MobileDataCardList>
+        ) : (
+          /* Desktop Table View */
+          <Card>
+            <CardContent className="overflow-x-auto p-0">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
+                        No students found.
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No students found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

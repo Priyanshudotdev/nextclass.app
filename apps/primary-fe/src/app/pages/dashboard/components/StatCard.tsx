@@ -27,7 +27,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'rounded-xl border p-4',
+        'rounded-xl border p-3 sm:p-4',
         variant === 'default' && 'bg-card',
         variant === 'highlight' && 'bg-primary text-primary-foreground',
         variant === 'muted' && 'bg-muted/30',
@@ -46,7 +46,7 @@ export function StatCard({
           >
             {title}
           </p>
-          <p className="font-mono text-3xl font-bold">{value}</p>
+          <p className="font-mono text-2xl sm:text-3xl font-bold">{value}</p>
           {subtitle && (
             <p
               className={cn(
@@ -63,7 +63,7 @@ export function StatCard({
         {Icon && (
           <div
             className={cn(
-              'rounded-lg p-2',
+              'rounded-lg p-1.5 sm:p-2',
               variant === 'highlight'
                 ? 'bg-primary-foreground/10'
                 : 'bg-muted'
@@ -71,7 +71,7 @@ export function StatCard({
           >
             <Icon
               className={cn(
-                'h-5 w-5',
+                'h-4 w-4 sm:h-5 sm:w-5',
                 variant === 'highlight'
                   ? 'text-primary-foreground/70'
                   : 'text-muted-foreground'

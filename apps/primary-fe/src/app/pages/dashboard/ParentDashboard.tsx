@@ -8,21 +8,21 @@ import { QuickAction } from './components'
 
 export function ParentDashboard() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Monitor your child's progress and activities.
         </p>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Left Column */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-4 sm:space-y-6 lg:col-span-2">
           {/* Children Info */}
-          <div className="rounded-xl border p-6">
+          <div className="rounded-xl border p-4 sm:p-6">
             <h3 className="mb-4 font-medium">My Children</h3>
             <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No children linked to your account</p>
@@ -30,7 +30,7 @@ export function ParentDashboard() {
           </div>
 
           {/* Enrolled Batches */}
-          <div className="rounded-xl border p-6">
+          <div className="rounded-xl border p-4 sm:p-6">
             <h3 className="mb-4 font-medium">Enrolled Batches</h3>
             <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No batches enrolled</p>
@@ -38,7 +38,7 @@ export function ParentDashboard() {
           </div>
 
           {/* Assigned Teachers */}
-          <div className="rounded-xl border p-6">
+          <div className="rounded-xl border p-4 sm:p-6">
             <h3 className="mb-4 font-medium">Assigned Teachers</h3>
             <div className="flex min-h-32 items-center justify-center text-muted-foreground">
               <p>No teachers assigned</p>
@@ -47,9 +47,10 @@ export function ParentDashboard() {
         </div>
 
         {/* Right Column */}
-        <div className="space-y-6">
+        {/* Right Column */}
+        <div className="space-y-4 sm:space-y-6">
           {/* Quick Actions */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
             <QuickAction
               title="View Attendance"

@@ -142,11 +142,11 @@ export function TeachersPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Teachers</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">Teachers</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage teaching staff and their assignments.
           </p>
@@ -277,39 +277,39 @@ export function TeachersPage() {
       </Dialog>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
-              <Users className="h-5 w-5 text-muted-foreground" />
+          <CardContent className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Teachers</p>
-              <p className="font-stat text-2xl font-semibold">{teachers.length}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
+              <p className="font-stat text-lg sm:text-2xl font-semibold">{teachers.length}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
-              <Users className="h-5 w-5 text-muted-foreground" />
+          <CardContent className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Active Teachers</p>
-              <p className="font-stat text-2xl font-semibold">
+              <p className="text-xs sm:text-sm text-muted-foreground">Active</p>
+              <p className="font-stat text-lg sm:text-2xl font-semibold">
                 {teachers.filter((t: User) => t.status?.toLowerCase() === 'active').length}
               </p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
-              <BookOpen className="h-5 w-5 text-muted-foreground" />
+          <CardContent className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[hsl(var(--background-muted))]">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Inactive</p>
-              <p className="font-stat text-2xl font-semibold">
+              <p className="text-xs sm:text-sm text-muted-foreground">Inactive</p>
+              <p className="font-stat text-lg sm:text-2xl font-semibold">
                 {teachers.filter((t: User) => t.status?.toLowerCase() !== 'active').length}
               </p>
             </div>
@@ -318,7 +318,7 @@ export function TeachersPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -329,7 +329,7 @@ export function TeachersPage() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-37.5">
+          <SelectTrigger className="w-full sm:w-[150px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -341,18 +341,18 @@ export function TeachersPage() {
       </div>
 
       {/* Teacher Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredTeachers.map((teacher: User) => (
           <Card key={teacher.id} className="group transition-colors hover:bg-[hsl(var(--background-subtle))]">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback>{getInitials(teacher.name)}</AvatarFallback>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
+                    <AvatarFallback className="text-sm">{getInitials(teacher.name)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <Link to={`/teachers/${teacher.id}`}>
-                      <h3 className="font-semibold hover:underline">{teacher.name}</h3>
+                      <h3 className="font-semibold text-sm sm:text-base hover:underline">{teacher.name}</h3>
                     </Link>
                     <p className="text-sm text-muted-foreground">Teacher</p>
                   </div>
@@ -386,19 +386,19 @@ export function TeachersPage() {
                 )}
               </div>
 
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  {teacher.email}
+              <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="truncate">{teacher.email}</span>
                 </div>
                 {teacher.city && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                     {teacher.city}, {teacher.state}
                   </div>
                 )}
               </div>
 
-              <div className="mt-4 flex items-center justify-between">
+              <div className="mt-3 sm:mt-4 flex items-center justify-between">
                 <Badge variant={teacher.status?.toLowerCase() === 'active' ? 'default' : 'secondary'}>
                   {teacher.status || 'Unknown'}
                 </Badge>

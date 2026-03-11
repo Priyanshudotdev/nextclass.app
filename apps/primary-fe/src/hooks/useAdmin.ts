@@ -452,3 +452,28 @@ export function useDeleteTeacherAssignment() {
     },
   });
 }
+
+// ============================================
+// ChatRooms (Admin)
+// ============================================
+
+export function useChatRooms() {
+  return useQuery({
+    queryKey: [...adminKeys.all, 'chatrooms'] as const,
+    queryFn: adminApi.getChatRooms,
+  });
+}
+
+export function useCreateChatRoom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: adminApi.CreateChatRoomInput) =>
+      adminApi.createChatRoom(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...adminKeys.all, 'chatrooms'],
+      });
+    },
+  });
+}

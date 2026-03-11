@@ -35,17 +35,17 @@ export function AdminDashboard() {
     : 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Welcome back! Here's your institute at a glance.
         </p>
       </div>
 
       {/* KPI Stats Row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-5">
         <StatCard
           title="Total Students"
           value={stats?.users?.students?.toLocaleString('en-IN') ?? '0'}
@@ -75,13 +75,13 @@ export function AdminDashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Left Column */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-4 sm:space-y-6 lg:col-span-2">
           {/* Quick Management Actions */}
           <div>
-            <h3 className="mb-4 text-sm font-medium text-muted-foreground">Quick Management</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <h3 className="mb-3 sm:mb-4 text-sm font-medium text-muted-foreground">Quick Management</h3>
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <QuickAction
                 title="Manage Courses"
                 description="Edit curriculum & modules"
@@ -111,45 +111,45 @@ export function AdminDashboard() {
           </div>
 
           {/* Stats Summary */}
-          <div className="rounded-xl border p-6">
-            <h3 className="mb-4 font-medium">Institute Summary</h3>
-            <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border p-4 sm:p-6">
+            <h3 className="mb-3 sm:mb-4 font-medium">Institute Summary</h3>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               <div className="text-center">
-                <p className="font-mono text-3xl font-bold">{stats?.enrollments ?? 0}</p>
-                <p className="text-sm text-muted-foreground">Total Enrollments</p>
+                <p className="font-mono text-xl sm:text-3xl font-bold">{stats?.enrollments ?? 0}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Enrollments</p>
               </div>
               <div className="text-center">
-                <p className="font-mono text-3xl font-bold">{stats?.subjects ?? 0}</p>
-                <p className="text-sm text-muted-foreground">Subjects</p>
+                <p className="font-mono text-xl sm:text-3xl font-bold">{stats?.subjects ?? 0}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Subjects</p>
               </div>
               <div className="text-center">
-                <p className="font-mono text-3xl font-bold">{stats?.recentActivity?.newEnrollments ?? 0}</p>
-                <p className="text-sm text-muted-foreground">New This Week</p>
+                <p className="font-mono text-xl sm:text-3xl font-bold">{stats?.recentActivity?.newEnrollments ?? 0}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">New This Week</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Column */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Today's Overview */}
-          <div className="rounded-xl border p-6">
-            <h3 className="mb-4 font-medium">Today's Overview</h3>
+          <div className="rounded-xl border p-4 sm:p-6">
+            <h3 className="mb-3 sm:mb-4 font-medium">Today's Overview</h3>
             {stats?.attendanceToday?.total ? (
-              <div className="flex items-center justify-around">
+              <div className="flex items-center justify-around gap-4">
                 <AttendanceRing
                   percentage={todayAttendanceRate}
-                  size="md"
+                  size="responsive"
                   label="Attendance"
                 />
-                <div className="space-y-4 text-center">
+                <div className="space-y-3 sm:space-y-4 text-center">
                   <div>
-                    <p className="font-mono text-2xl font-bold">{stats.attendanceToday.present}</p>
-                    <p className="text-sm text-muted-foreground">Present</p>
+                    <p className="font-mono text-xl sm:text-2xl font-bold">{stats.attendanceToday.present}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Present</p>
                   </div>
                   <div>
-                    <p className="font-mono text-2xl font-bold text-red-500">{stats.attendanceToday.absent}</p>
-                    <p className="text-sm text-muted-foreground">Absent</p>
+                    <p className="font-mono text-xl sm:text-2xl font-bold text-red-500">{stats.attendanceToday.absent}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Absent</p>
                   </div>
                 </div>
               </div>
@@ -161,9 +161,9 @@ export function AdminDashboard() {
           </div>
 
           {/* Recent Activity Summary */}
-          <div className="rounded-xl border p-6">
-            <h3 className="mb-4 font-medium">Recent Activity</h3>
-            <div className="space-y-4">
+          <div className="rounded-xl border p-4 sm:p-6">
+            <h3 className="mb-3 sm:mb-4 font-medium">Recent Activity</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">New Resources</span>
                 <span className="font-mono font-medium">{stats?.recentActivity?.newResources ?? 0}</span>

@@ -26,7 +26,7 @@ export function QuickAction({
     <Link
       to={href}
       className={cn(
-        'group flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:bg-muted/50',
+        'group flex items-center gap-3 sm:gap-4 rounded-xl border p-3 sm:p-4 transition-all hover:border-foreground/20 hover:bg-muted/50 min-h-[56px]',
         variant === 'primary' && 'border-primary/10 bg-primary text-primary-foreground hover:bg-primary/90',
         variant === 'warning' && 'border-amber-500/20 bg-amber-500/10',
         variant === 'muted' && 'bg-muted/30',
@@ -35,7 +35,7 @@ export function QuickAction({
     >
       <div
         className={cn(
-          'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
+          'flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg',
           variant === 'default' && 'bg-muted',
           variant === 'primary' && 'bg-primary-foreground/10',
           variant === 'warning' && 'bg-amber-500/20',
@@ -44,7 +44,7 @@ export function QuickAction({
       >
         <Icon
           className={cn(
-            'h-5 w-5',
+            'h-4 w-4 sm:h-5 sm:w-5',
             variant === 'default' && 'text-muted-foreground',
             variant === 'primary' && 'text-primary-foreground/80',
             variant === 'warning' && 'text-amber-600',
@@ -53,11 +53,11 @@ export function QuickAction({
         />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h4
             className={cn(
-              'font-medium',
+              'text-sm sm:text-base font-medium truncate',
               variant === 'primary' && 'text-primary-foreground'
             )}
           >
@@ -79,7 +79,7 @@ export function QuickAction({
         {description && (
           <p
             className={cn(
-              'text-xs',
+              'text-xs truncate hidden sm:block',
               variant === 'primary' ? 'text-primary-foreground/60' : 'text-muted-foreground'
             )}
           >

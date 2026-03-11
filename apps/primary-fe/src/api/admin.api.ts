@@ -507,3 +507,36 @@ export async function deleteTeacherAssignment(
 ): Promise<void> {
   await api.delete(`/api/admin/teacher-assignments/${assignmentId}`);
 }
+
+// ============================================
+// ChatRooms (Admin)
+// ============================================
+
+export interface ChatRoom {
+  id: string;
+  name: string;
+  type: string;
+  batch: { id: string; name: string };
+  createdAt: string;
+}
+
+export interface CreateChatRoomInput {
+  batchId: string;
+  name: string;
+  type?: string;
+}
+
+export async function getChatRooms(): Promise<ChatRoom[]> {
+  const res = await api.get<ApiResponse<ChatRoom[]>>('/api/admin/chatrooms');
+  return res.data.data;
+}
+
+export async function createChatRoom(
+  input: CreateChatRoomInput,
+): Promise<ChatRoom> {
+  const res = await api.post<ApiResponse<ChatRoom>>(
+    '/api/admin/chatrooms',
+    input,
+  );
+  return res.data.data;
+}

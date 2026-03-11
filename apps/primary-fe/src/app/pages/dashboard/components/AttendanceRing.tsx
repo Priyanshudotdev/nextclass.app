@@ -1,8 +1,9 @@
 import { cn } from '@/lib/utils'
+import { useIsMobile } from '@/hooks/use-sidebar'
 
 interface AttendanceRingProps {
   percentage: number
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'responsive'
   strokeWidth?: number
   label?: string
   sublabel?: string
@@ -12,19 +13,27 @@ interface AttendanceRingProps {
 export function AttendanceRing({
   percentage,
   size = 'md',
-  strokeWidth = 8,
+  strokeWidth,
   label,
   sublabel,
   className,
 }: AttendanceRingProps) {
+  const isMobile = useIsMobile()
+  
   const sizes = {
     sm: 80,
     md: 120,
     lg: 160,
   }
 
-  const dimension = sizes[size]
-  const radius = (dimension - strokeWidth) / 2
+  // For responsive mode, use sm on mobile, md on desktop
+  const effectiveSize = size === 'responsive' 
+    ? (isMobile ? 'sm' : 'md') 
+    : size
+
+  const dimension = sizes[effectiveSize]
+  const effectiveStrokeWidth = strokeWidth ?? (isMobile ? 6 : 8)
+  const radius = (dimension - effectiveStrokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (percentage / 100) * circumference
 
@@ -48,7 +57,7 @@ export function AttendanceRing({
           r={radius}
           fill="none"
           stroke="currentColor"
-          strokeWidth={strokeWidth}
+          strokeWidth={effectiveStrokeWidth}
           className="text-muted"
         />
         {/* Progress circle */}
@@ -57,7 +66,7 @@ export function AttendanceRing({
           cy={dimension / 2}
           r={radius}
           fill="none"
-          strokeWidth={strokeWidth}
+          strokeWidth={effectiveStrokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -68,9 +77,9 @@ export function AttendanceRing({
         <span
           className={cn(
             'font-mono font-bold',
-            size === 'sm' && 'text-lg',
-            size === 'md' && 'text-2xl',
-            size === 'lg' && 'text-3xl'
+            effectiveSize === 'sm' && 'text-lg',
+            effectiveSize === 'md' && 'text-2xl',
+            effectiveSize === 'lg' && 'text-3xl'
           )}
         >
           {percentage}%
