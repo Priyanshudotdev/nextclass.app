@@ -19,6 +19,7 @@ import {
   Pin,
   MoreVertical,
   Megaphone,
+  ArrowLeft,
 } from 'lucide-react'
 import { cn, getInitials, formatDate } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
@@ -54,7 +55,7 @@ export function ChatPage() {
     room.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || []
 
-  const selectedRoom = filteredRooms.find(r => r.id === selectedRoomId)
+  const selectedRoom = chatRooms?.find((r) => r.id === selectedRoomId)
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -117,9 +118,14 @@ export function ChatPage() {
   const isSending = sendMessageMutation.isPending || sendAnnouncementMutation.isPending
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-4">
+    <div className="flex h-[calc(100vh-8rem)] gap-0 md:gap-4">
       {/* Room List */}
-      <Card className="w-80 shrink-0">
+      <Card
+        className={cn(
+          'w-full md:w-80 md:shrink-0',
+          selectedRoomId ? 'hidden md:block' : 'block'
+        )}
+      >
         <CardContent className="flex h-full flex-col p-4">
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -179,15 +185,25 @@ export function ChatPage() {
       </Card>
 
       {/* Chat Panel */}
-      <Card className="flex-1">
+      <Card className={cn('flex-1', selectedRoomId ? 'block' : 'hidden md:block')}>
         <CardContent className="flex h-full flex-col p-0">
           {selectedRoom ? (
             <>
               {/* Header */}
-              <div className="flex items-center justify-between border-b p-4">
-                <div>
-                  <h2 className="font-semibold">{selectedRoom.name}</h2>
-                  <p className="text-sm text-muted-foreground">{selectedRoom.batch?.name}</p>
+              <div className="flex items-center border-b p-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="md:hidden"
+                    onClick={() => setSelectedRoomId(null)}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <div>
+                    <h2 className="font-semibold">{selectedRoom.name}</h2>
+                    <p className="text-sm text-muted-foreground">{selectedRoom.batch?.name}</p>
+                  </div>
                 </div>
               </div>
 
@@ -255,7 +271,7 @@ export function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+            <div className="hidden h-full flex-col items-center justify-center p-8 text-center md:flex">
               <MessageSquare className="h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 font-semibold">Select a Chat Room</h3>
               <p className="mt-2 text-sm text-muted-foreground">
