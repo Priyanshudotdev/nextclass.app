@@ -5,10 +5,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { StepIndicator, PasswordStrength, InstituteTypeSelector, getPasswordStrength } from './components'
+import { StepIndicator, PasswordStrength, InstituteTypeSelector, getPasswordStrength, PhoneInput } from './components'
 import { cn } from '@/lib/utils'
 import { useRegister } from '@/hooks/auth'
 import { toast } from 'sonner'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const isValidEmail = (v: string) => EMAIL_REGEX.test(v.trim())
+const getDigits = (v: string) => v.replace(/\D/g, '')
 
 type Step = 1 | 2 | 3 | 4
 
@@ -22,6 +26,7 @@ interface FormData {
   adminName: string
   adminEmail: string
   adminPhone: string
+  adminPhoneCountryCode: string
   password: string
   confirmPassword: string
 
@@ -43,6 +48,7 @@ const initialFormData: FormData = {
   adminName: '',
   adminEmail: '',
   adminPhone: '',
+  adminPhoneCountryCode: '+91',
   password: '',
   confirmPassword: '',
   instituteAddress: '',
@@ -89,20 +95,32 @@ export function RegisterPage() {
         return true
 
       case 2:
-        if (!formData.adminName.trim()) {
-          setError('Your name is required')
+        if (!formData.adminName.trim() || formData.adminName.trim().length < 2) {
+          setError('Please enter your full name (at least 2 characters)')
           return false
         }
         if (!formData.adminEmail.trim()) {
           setError('Email is required')
           return false
         }
+        if (!isValidEmail(formData.adminEmail)) {
+          setError('Please enter a valid email address')
+          return false
+        }
         if (!formData.adminPhone.trim()) {
           setError('Phone number is required')
           return false
         }
+        if (getDigits(formData.adminPhone).length < 8) {
+          setError('Please enter a valid phone number (at least 8 digits)')
+          return false
+        }
         if (!formData.password) {
           setError('Password is required')
+          return false
+        }
+        if (formData.password.length < 8) {
+          setError('Password must be at least 8 characters')
           return false
         }
         if (passwordStrength.strength === 'weak') {
@@ -335,15 +353,15 @@ export function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="adminPhone">Phone Number</Label>
-                  <Input
-                    id="adminPhone"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={formData.adminPhone}
-                    onChange={(e) => updateFormData({ adminPhone: e.target.value })}
+                  <Label>Phone Number</Label>
+                  <PhoneInput
+                    phone={formData.adminPhone}
+                    countryCode={formData.adminPhoneCountryCode}
+                    onPhoneChange={(val) => updateFormData({ adminPhone: val })}
+                    onCountryChange={(val) => updateFormData({ adminPhoneCountryCode: val })}
                   />
                 </div>
+                    <p><span className="text-muted-foreground">Phone:</span> {formData.adminPhoneCountryCode} {formData.adminPhone}</p>
 
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>

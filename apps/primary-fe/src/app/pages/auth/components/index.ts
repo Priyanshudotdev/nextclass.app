@@ -5,3 +5,4 @@ export {
   InstituteTypeSelector,
   StudentCountSelector,
 } from './InstituteTypeSelector';
+export { PhoneInput } from './PhoneInput';

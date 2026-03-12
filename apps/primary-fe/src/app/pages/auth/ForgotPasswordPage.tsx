@@ -4,12 +4,17 @@ import { Loader2, ArrowLeft, CheckCircle2, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PhoneInput } from './components'
+import { cn } from '@/lib/utils'
 
 type State = 'form' | 'success'
 
 export function ForgotPasswordPage() {
   const [state, setState] = useState<State>('form')
+  const [resetMode, setResetMode] = useState<'email' | 'phone'>('email')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [countryCode, setCountryCode] = useState('+91')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -17,14 +22,24 @@ export function ForgotPasswordPage() {
     e.preventDefault()
     setError('')
 
-    if (!email.trim()) {
-      setError('Email is required')
-      return
+    if (resetMode === 'email') {
+      if (!email.trim()) {
+        setError('Email address is required')
+        return
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        setError('Please enter a valid email address')
+        return
+      }
+    } else {
+      if (phone.replace(/\D/g, '').length < 8) {
+        setError('Enter a valid phone number (at least 8 digits)')
+        return
+      }
     }
 
     setIsLoading(true)
     try {
-      // Simulate password reset API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
       setState('success')
     } catch {
@@ -49,7 +64,7 @@ export function ForgotPasswordPage() {
             password
           </h2>
           <p className="text-primary-foreground/70">
-            Enter your email and we'll send you a link to reset your password.
+            Enter your email or phone number and we'll send you a link to reset your password.
           </p>
         </div>
 
@@ -72,23 +87,64 @@ export function ForgotPasswordPage() {
               <div className="space-y-2">
                 <h2 className="font-display text-2xl font-semibold">Forgot Password</h2>
                 <p className="text-sm text-muted-foreground">
-                  Enter your email address and we'll send you a reset link
+                  Enter your email or phone and we'll send you a reset link
                 </p>
               </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                {/* Mode Toggle */}
+                <div className="flex gap-1 rounded-lg border p-1">
+                  <button
+                    type="button"
+                    onClick={() => { setResetMode('email'); setError('') }}
+                    className={cn(
+                      'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      resetMode === 'email'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setResetMode('phone'); setError('') }}
+                    className={cn(
+                      'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      resetMode === 'phone'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    Phone
+                  </button>
                 </div>
+
+                {resetMode === 'email' ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Phone Number</Label>
+                    <PhoneInput
+                      phone={phone}
+                      countryCode={countryCode}
+                      onPhoneChange={setPhone}
+                      onCountryChange={setCountryCode}
+                      disabled={isLoading}
+                      placeholder="98765 43210"
+                    />
+                  </div>
+                )}
 
                 {error && (
                   <p className="text-sm text-destructive">{error}</p>
@@ -96,6 +152,9 @@ export function ForgotPasswordPage() {
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <p className="font-medium">
+                                      {resetMode === 'email' ? email : `${countryCode} ${phone}`}
+                                    </p>
                   Send Reset Link
                 </Button>
               </form>

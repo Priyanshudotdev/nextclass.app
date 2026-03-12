@@ -4,10 +4,14 @@ import { Eye, EyeOff, Loader2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { OtpInput } from './components'
+import { OtpInput, PhoneInput } from './components'
 import { cn } from '@/lib/utils'
 import { useLogin } from '@/hooks/auth'
 import { toast } from 'sonner'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const isValidEmail = (v: string) => EMAIL_REGEX.test(v.trim())
+const getDigits = (v: string) => v.replace(/\D/g, '')
 
 type LoginMode = 'password' | 'otp-request' | 'otp-verify'
 
@@ -25,6 +29,7 @@ export function LoginPage() {
 
   // OTP login state
   const [phone, setPhone] = useState('')
+  const [countryCode, setCountryCode] = useState('+91')
   const [otp, setOtp] = useState('')
   const [maskedPhone, setMaskedPhone] = useState('')
   const [resendTimer, setResendTimer] = useState(0)
@@ -32,6 +37,19 @@ export function LoginPage() {
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!instituteId.trim()) {
+      setError('Institute ID is required')
+      return
+    }
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
 
     loginMutation.mutate(
       { email, password, instituteId },
@@ -50,13 +68,20 @@ export function LoginPage() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (getDigits(phone).length < 8) {
+      setError('Enter a valid phone number (at least 8 digits)')
+      return
+    }
+
     setIsOtpLoading(true)
 
     try {
       // TODO: Implement OTP send API
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      const masked = phone.replace(/(\d{2})\d{6}(\d{2})/, '$1XXXXXX$2')
-      setMaskedPhone(masked)
+      const digits = getDigits(phone)
+      const masked = digits.replace(/(\d{2})\d+(\d{2})$/, '$1XXXXXX$2')
+      setMaskedPhone(`${countryCode} ${masked}`)
       setMode('otp-verify')
       setResendTimer(30)
 
@@ -270,14 +295,14 @@ export function LoginPage() {
           {mode === 'otp-request' && (
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
+                <Label>Phone Number</Label>
+                <PhoneInput
+                  phone={phone}
+                  countryCode={countryCode}
+                  onPhoneChange={setPhone}
+                  onCountryChange={setCountryCode}
+                  disabled={isLoading}
+                  placeholder="98765 43210"
                 />
               </div>
 
