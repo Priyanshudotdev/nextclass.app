@@ -5,6 +5,10 @@
 @import '@fontsource/dm-sans/700.css';
 @import '@fontsource-variable/geist-mono';
 
+/* Scan workspace UI package so Tailwind includes bg-popover, bg-background,
+   bg-card etc. used by @repo/ui dialog, sheet, dropdown components */
+@source "../../../packages/ui/src";
+
 /* ============================================
    NextClass Design System
    Aesthetic: Refined Utilitarian (Linear meets Notion)
@@ -88,87 +92,87 @@
 
 :root {
   /* ============================================
-     MVPBlocks Theme - Dark with Rose Primary
-     Pure Black Tones (no warm browns)
+     NextClass Theme - Emerald Green Palette
+     13714C | 3AB67D | A2E494 | E9EBED
      ============================================ */
 
-  /* Backgrounds - Pure black tones */
-  --background: 0 0% 4%;
-  --background-subtle: 0 0% 6%;
-  --background-muted: 0 0% 8%;
+  /* Backgrounds - Neutral gray (#E9EBED) */
+  --background: 210 10% 96%;
+  --background-subtle: 210 10% 93%;
+  --background-muted: 110 25% 90%;
 
-  /* Foregrounds - Light on dark */
-  --foreground: 0 0% 95%;
-  --foreground-muted: 0 0% 65%;
-  --foreground-subtle: 0 0% 55%;
+  /* Foregrounds - Deep forest green (#13714C) */
+  --foreground: 156 60% 15%;
+  --foreground-muted: 156 30% 35%;
+  --foreground-subtle: 156 18% 50%;
 
-  /* Borders - Neutral gray */
-  --border: 0 0% 16%;
-  --border-strong: 0 0% 25%;
+  /* Borders - Neutral gray tint */
+  --border: 210 12% 85%;
+  --border-strong: 210 12% 75%;
 
-  /* Primary - Rose/Red accent */
-  --primary: 349 72% 53%;
-  --primary-foreground: 355 100% 97%;
+  /* Primary - Deep forest green (#13714C) */
+  --primary: 156 71% 26%;
+  --primary-foreground: 0 0% 100%;
 
-  /* Secondary - Pure neutral */
-  --secondary: 0 0% 14%;
-  --secondary-foreground: 0 0% 98%;
+  /* Secondary - Light mint tint (#A2E494) */
+  --secondary: 110 40% 88%;
+  --secondary-foreground: 156 71% 26%;
 
-  /* Accent - Pure neutral */
-  --accent: 0 0% 12%;
-  --accent-foreground: 0 0% 98%;
+  /* Accent - Emerald green (#3AB67D) */
+  --accent: 152 52% 47%;
+  --accent-foreground: 0 0% 100%;
 
-  /* Muted */
-  --muted: 0 0% 12%;
-  --muted-foreground: 0 0% 65%;
+  /* Muted - Neutral gray (#E9EBED) */
+  --muted: 210 10% 92%;
+  --muted-foreground: 156 18% 45%;
 
   /* Destructive */
-  --destructive: 0 62% 31%;
-  --destructive-foreground: 0 86% 97%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
 
-  /* Card - Pure black tone */
-  --card: 0 0% 7%;
-  --card-foreground: 0 0% 95%;
+  /* Card - White */
+  --card: 0 0% 100%;
+  --card-foreground: 156 60% 15%;
 
-  /* Popover - Pure black tone */
-  --popover: 0 0% 7%;
-  --popover-foreground: 0 0% 95%;
+  /* Popover */
+  --popover: 0 0% 100%;
+  --popover-foreground: 156 60% 15%;
 
-  /* Sidebar - Pure black tones */
-  --sidebar: 0 0% 6%;
-  --sidebar-foreground: 0 0% 96%;
-  --sidebar-primary: 349 72% 53%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 12%;
-  --sidebar-accent-foreground: 0 0% 96%;
-  --sidebar-border: 0 0% 14%;
-  --sidebar-ring: 349 72% 53%;
-  --sidebar-bg: 0 0% 6%;
-  --sidebar-active-bg: 0 0% 14%;
-  --sidebar-text: 0 0% 70%;
+  /* Sidebar - Deep forest green (#13714C) */
+  --sidebar: 156 71% 26%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 110 60% 74%;
+  --sidebar-primary-foreground: 156 71% 18%;
+  --sidebar-accent: 156 60% 32%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 156 55% 22%;
+  --sidebar-ring: 152 52% 47%;
+  --sidebar-bg: 156 71% 26%;
+  --sidebar-active-bg: 156 55% 34%;
+  --sidebar-text: 0 0% 92%;
   --sidebar-active-text: 0 0% 100%;
-  --sidebar-hover-bg: 0 0% 10%;
+  --sidebar-hover-bg: 156 48% 31%;
 
-  /* Input - Neutral */
-  --input: 0 0% 14%;
-  --input-focus: 349 72% 53%;
+  /* Input */
+  --input: 210 10% 87%;
+  --input-focus: 156 71% 26%;
 
-  /* Ring (focus states) - Rose */
-  --ring: 344 84% 50%;
+  /* Ring (focus states) - Emerald green (#3AB67D) */
+  --ring: 152 52% 47%;
 
-  /* Chart Colors */
-  --chart-1: 349 72% 53%;
-  --chart-2: 217 91% 60%;
-  --chart-3: 142 76% 36%;
-  --chart-4: 38 92% 50%;
-  --chart-5: 262 83% 58%;
+  /* Chart Colors - Emerald palette */
+  --chart-1: 156 71% 26%;
+  --chart-2: 152 52% 47%;
+  --chart-3: 110 60% 74%;
+  --chart-4: 210 10% 78%;
+  --chart-5: 156 71% 42%;
 
   /* Status Colors */
-  --success: 142 76% 36%;
+  --success: 156 71% 26%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 7%;
-  --info: 217 91% 60%;
+  --warning-foreground: 0 0% 100%;
+  --info: 200 70% 50%;
   --info-foreground: 0 0% 100%;
 
   /* Radius */

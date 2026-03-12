@@ -80,7 +80,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen border-r transition-all duration-300 ease-in-out',
+        'fixed left-0 top-0 z-40 h-screen border-r text-[hsl(var(--sidebar-foreground))] transition-all duration-300 ease-in-out',
         'bg-[hsl(var(--sidebar-bg))] border-[hsl(var(--sidebar-border))]',
         isCollapsed ? 'w-16' : 'w-60'
       )}
@@ -94,18 +94,17 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           )}
         >
           {!isCollapsed && (
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <span className="text-sm font-bold text-primary-foreground">N</span>
+            <Link to="/dashboard" className="flex items-center gap-2 text-[hsl(var(--sidebar-foreground))]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/14 shadow-sm ring-1 ring-white/12">
+                <span className="text-sm font-bold text-white">N</span>
               </div>
-              <span className="font-display text-lg">NextClass</span>
+              <span className="font-display text-lg text-white">NextClass</span>
             </Link>
           )}
           <button
             onClick={onToggle}
             className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-md transition-colors cursor-pointer',
-              'hover:bg-[hsl(var(--sidebar-hover-bg))] text-[hsl(var(--sidebar-text))]',
+              'flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-all duration-200 ease-out cursor-pointer hover:-translate-x-0.5 hover:bg-white/10 hover:text-white',
               isCollapsed && 'rotate-180'
             )}
           >
@@ -124,14 +123,14 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 <Link
                   to={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer',
+                    'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-out cursor-pointer',
                     isActive
-                      ? 'bg-primary/10 text-primary border-l-2 border-primary'
-                      : 'text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-primary',
+                      ? 'bg-white/14 text-[hsl(var(--sidebar-active-text))] shadow-sm backdrop-blur-sm'
+                      : 'text-[hsl(var(--sidebar-text))] hover:translate-x-1 hover:bg-white/10 hover:text-white',
                     isCollapsed && 'justify-center px-3'
                   )}
                 >
-                  <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
+                  <Icon className={cn('h-5 w-5 shrink-0 transition-transform duration-200 ease-out group-hover:scale-105', isActive ? 'text-white' : 'text-[hsl(var(--sidebar-text))] group-hover:text-white')} />
                   {!isCollapsed && (
                     <>
                       <span className="flex-1">{item.title}</span>
@@ -173,10 +172,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => logout()}
-                  className="flex w-full items-center justify-center rounded-md p-2 transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))]"
+                  className="flex w-full items-center justify-center rounded-md p-2 text-[hsl(var(--sidebar-text))] transition-all duration-200 ease-out cursor-pointer hover:scale-[1.02] hover:bg-white/10 hover:text-white"
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-[hsl(var(--muted))] text-xs font-medium">
+                    <AvatarFallback className="bg-white/14 text-xs font-medium text-white ring-1 ring-white/12">
                       {user ? getInitials(user.name) : 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -190,19 +189,19 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           ) : (
             <div className="flex items-center gap-3">
               <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-[hsl(var(--muted))] text-sm font-medium">
+                <AvatarFallback className="bg-white/14 text-sm font-medium text-white ring-1 ring-white/12">
                   {user ? getInitials(user.name) : 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 overflow-hidden">
-                <p className="truncate text-sm font-medium text-[hsl(var(--sidebar-active-text))]">{user?.name}</p>
-                <p className="truncate text-xs text-[hsl(var(--sidebar-text))]">{user?.role}</p>
+                <p className="truncate text-sm font-medium text-white">{user?.name}</p>
+                <p className="truncate text-xs text-white/72">{user?.role}</p>
               </div>
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => logout()}
-                    className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--destructive))]"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-all duration-200 ease-out cursor-pointer hover:scale-105 hover:bg-white/10 hover:text-white"
                   >
                     <LogOut className="h-4 w-4" />
                   </button>
@@ -247,19 +246,19 @@ export function MobileSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: (
       <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 h-screen w-72 bg-[hsl(var(--sidebar-bg))] shadow-xl">
+      <aside className="fixed left-0 top-0 z-50 h-screen w-72 bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-foreground))] shadow-xl">
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-between border-b border-[hsl(var(--sidebar-border))] px-4">
-            <Link to="/dashboard" className="flex items-center gap-2" onClick={onClose}>
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <span className="text-sm font-bold text-primary-foreground">N</span>
+            <Link to="/dashboard" className="flex items-center gap-2 text-[hsl(var(--sidebar-foreground))]" onClick={onClose}>
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/14 shadow-sm ring-1 ring-white/12">
+                <span className="text-sm font-bold text-white">N</span>
               </div>
-              <span className="font-display text-lg">NextClass</span>
+              <span className="font-display text-lg text-white">NextClass</span>
             </Link>
             <button
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))]"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-all duration-200 ease-out cursor-pointer hover:scale-105 hover:bg-white/10 hover:text-white"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -278,13 +277,13 @@ export function MobileSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     to={item.href}
                     onClick={onClose}
                     className={cn(
-                      'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer',
+                      'group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-out cursor-pointer',
                       isActive
-                        ? 'bg-primary/10 text-primary border-l-2 border-primary'
-                        : 'text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-primary'
+                        ? 'bg-white/14 text-[hsl(var(--sidebar-active-text))] shadow-sm backdrop-blur-sm'
+                        : 'text-[hsl(var(--sidebar-text))] hover:translate-x-1 hover:bg-white/10 hover:text-white'
                     )}
                   >
-                    <Icon className="h-5 w-5 shrink-0" />
+                    <Icon className={cn('h-5 w-5 shrink-0 transition-transform duration-200 ease-out group-hover:scale-105', isActive ? 'text-white' : 'text-[hsl(var(--sidebar-text))] group-hover:text-white')} />
                     <span className="flex-1">{item.title}</span>
                     {item.badge && item.badge > 0 && (
                       <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-xs">
@@ -302,20 +301,20 @@ export function MobileSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: (
           <div className="p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-[hsl(var(--muted))] text-sm font-medium">
+                <AvatarFallback className="bg-white/14 text-sm font-medium text-white ring-1 ring-white/12">
                   {user ? getInitials(user.name) : 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 overflow-hidden">
-                <p className="truncate text-sm font-medium">{user?.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{user?.role}</p>
+                <p className="truncate text-sm font-medium text-white">{user?.name}</p>
+                <p className="truncate text-xs text-white/72">{user?.role}</p>
               </div>
               <button
                 onClick={() => {
                   logout()
                   onClose()
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors cursor-pointer hover:bg-[hsl(var(--sidebar-hover-bg))] hover:text-[hsl(var(--destructive))]"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-[hsl(var(--sidebar-text))] transition-all duration-200 ease-out cursor-pointer hover:scale-105 hover:bg-white/10 hover:text-white"
               >
                 <LogOut className="h-4 w-4" />
               </button>
