@@ -104,7 +104,7 @@ export interface Resource {
   description?: string | null;
   fileUrl: string;
   fileType?: string | null;
-  batch: { id: string; name: string };
+  batch: { id: string; name: string; course?: { id: string; name: string } };
   subject?: { id: string; name: string } | null;
   teacher: { id: string; name: string };
   createdAt: string;
@@ -516,7 +516,7 @@ export interface ChatRoom {
   id: string;
   name: string;
   type: string;
-  batch: { id: string; name: string };
+  batch: { id: string; name: string; course?: { id: string; name: string } };
   createdAt: string;
 }
 

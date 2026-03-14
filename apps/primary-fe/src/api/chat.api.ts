@@ -5,12 +5,18 @@ import api from '@/lib/axios';
 // ============================================
 
 export type MessageType = 'TEXT' | 'FILE' | 'IMAGE';
+export type MessagingMode = 'EVERYONE' | 'ADMIN_ONLY';
 
 export interface ChatRoom {
   id: string;
   name: string;
   type: string;
-  batch: { id: string; name: string };
+  messagingMode?: MessagingMode;
+  batch?: {
+    id: string;
+    name: string;
+    course?: { id: string; name: string };
+  } | null;
   createdAt: string;
 }
 
@@ -34,6 +40,7 @@ export interface SendMessageInput {
   content: string;
   messageType?: MessageType;
   fileUrl?: string;
+  isAnnouncement?: boolean;
 }
 
 export interface MessageQueryParams {
@@ -101,6 +108,16 @@ export async function getTeacherChatMessages(
   return res.data.data;
 }
 
+export async function sendTeacherInstituteAnnouncement(
+  input: SendMessageInput,
+): Promise<ChatMessage> {
+  const res = await api.post<ApiResponse<ChatMessage>>(
+    '/api/teacher/chat-rooms/institute/messages',
+    input,
+  );
+  return res.data.data;
+}
+
 export async function sendTeacherMessage(
   chatRoomId: string,
   input: SendMessageInput,
@@ -157,5 +174,55 @@ export async function unpinMessage(
 
 export async function getAdminChatRooms(): Promise<ChatRoom[]> {
   const res = await api.get<ApiResponse<ChatRoom[]>>('/api/admin/chatrooms');
+  return res.data.data;
+}
+
+export async function getAdminChatMessages(
+  chatRoomId: string,
+  params?: MessageQueryParams,
+): Promise<ChatMessage[]> {
+  const res = await api.get<ApiResponse<ChatMessage[]>>(
+    `/api/admin/chatrooms/${chatRoomId}/messages`,
+    { params },
+  );
+  return res.data.data;
+}
+
+export async function sendAdminMessage(
+  chatRoomId: string,
+  input: SendMessageInput,
+): Promise<ChatMessage> {
+  const res = await api.post<ApiResponse<ChatMessage>>(
+    `/api/admin/chatrooms/${chatRoomId}/messages`,
+    input,
+  );
+  return res.data.data;
+}
+
+export async function updateChatRoom(
+  chatRoomId: string,
+  body: { messagingMode: MessagingMode },
+): Promise<ChatRoom> {
+  const res = await api.patch<ApiResponse<ChatRoom>>(
+    `/api/admin/chatrooms/${chatRoomId}`,
+    body,
+  );
+  return res.data.data;
+}
+
+export async function getInstituteAnnouncementRoom(): Promise<ChatRoom> {
+  const res = await api.get<ApiResponse<ChatRoom>>(
+    '/api/admin/chatrooms/institute',
+  );
+  return res.data.data;
+}
+
+export async function sendInstituteAnnouncement(
+  input: SendMessageInput,
+): Promise<ChatMessage> {
+  const res = await api.post<ApiResponse<ChatMessage>>(
+    '/api/admin/chatrooms/institute/messages',
+    { content: input.content },
+  );
   return res.data.data;
 }

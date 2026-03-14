@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
+import {
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+} from '@/hooks/useNotifications'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -51,12 +56,11 @@ type DialogType = 'student' | 'teacher' | 'course' | 'batch' | null
 export function Topbar({ onMenuClick, isMobile }: TopbarProps) {
   const { user, logout, hasRole } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
-  const [notifications, setNotifications] = useState([
-    { id: '1', title: 'New assignment submitted', route: '/reports', unread: true },
-    { id: '2', title: 'Batch chat has new messages', route: '/chat', unread: true },
-    { id: '3', title: 'Announcement posted by admin', route: '/announcements', unread: true },
-  ])
   const [openDialog, setOpenDialog] = useState<DialogType>(null)
+
+  const { data: notificationsData } = useNotifications(user?.role)
+  const markNotificationReadMutation = useMarkNotificationRead(user?.role)
+  const markAllNotificationsReadMutation = useMarkAllNotificationsRead(user?.role)
 
   // Mutation hooks
   const createUserMutation = useCreateUser()
@@ -156,10 +160,20 @@ export function Topbar({ onMenuClick, isMobile }: TopbarProps) {
       .slice(0, 2)
   }
 
-  const unreadNotificationCount = notifications.filter((n) => n.unread).length
+  const notifications = notificationsData || []
+  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length
+
+  const getNotificationRoute = (type: string) => {
+    if (type === 'RESOURCE') return '/resources'
+    if (type === 'ATTENDANCE') return '/attendance'
+    if (type === 'ANNOUNCEMENT') return '/announcements'
+    if (type === 'MESSAGE') return '/chat'
+    return '/dashboard'
+  }
 
   const markNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((item) => ({ ...item, unread: false })))
+    if (unreadNotificationCount === 0) return
+    markAllNotificationsReadMutation.mutate()
   }
 
   return (
@@ -291,11 +305,27 @@ export function Topbar({ onMenuClick, isMobile }: TopbarProps) {
                 <span className="text-xs text-muted-foreground">{unreadNotificationCount} unread</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {notifications.length === 0 && (
+                <DropdownMenuItem disabled>
+                  <span className="text-sm text-muted-foreground">No notifications yet</span>
+                </DropdownMenuItem>
+              )}
               {notifications.map((notification) => (
                 <DropdownMenuItem asChild key={notification.id} className="cursor-pointer">
-                  <Link to={notification.route} className="flex flex-col items-start gap-0.5">
+                  <Link
+                    to={getNotificationRoute(notification.type)}
+                    className="flex flex-col items-start gap-0.5"
+                    onClick={() => {
+                      if (!notification.isRead) {
+                        markNotificationReadMutation.mutate(notification.id)
+                      }
+                    }}
+                  >
                     <span className="text-sm">{notification.title}</span>
-                    {notification.unread && <span className="text-xs text-primary">New</span>}
+                    <span className="line-clamp-1 text-xs text-muted-foreground">
+                      {notification.message}
+                    </span>
+                    {!notification.isRead && <span className="text-xs text-primary">New</span>}
                   </Link>
                 </DropdownMenuItem>
               ))}

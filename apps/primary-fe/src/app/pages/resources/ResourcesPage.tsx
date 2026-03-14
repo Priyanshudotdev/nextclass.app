@@ -216,7 +216,7 @@ export function ResourcesPage() {
                 <SelectContent>
                   {batches.map((batch: Batch) => (
                     <SelectItem key={batch.id} value={batch.id}>
-                      {batch.name}
+                      {batch.name} ({batch.course?.name || 'Course'})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -308,7 +308,7 @@ export function ResourcesPage() {
             <SelectItem value="all">All Batches</SelectItem>
             {batches.map((batch: Batch) => (
               <SelectItem key={batch.id} value={batch.id}>
-                {batch.name}
+                {batch.name} ({batch.course?.name || 'Course'})
               </SelectItem>
             ))}
           </SelectContent>
@@ -353,7 +353,11 @@ export function ResourcesPage() {
 
               <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{resource.subject?.name || 'General'}</span>
-                <span>{resource.batch?.name || 'All Batches'}</span>
+                <span>
+                  {resource.batch
+                    ? `${resource.batch.name} (${resource.batch.course?.name || 'Course'})`
+                    : 'All Batches'}
+                </span>
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
                 {formatDate(resource.createdAt)}
