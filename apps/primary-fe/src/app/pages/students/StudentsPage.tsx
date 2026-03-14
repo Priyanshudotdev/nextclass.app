@@ -10,7 +10,7 @@ import {
   getFilteredRowModel,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -63,7 +63,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useIsMobile } from '@/hooks/use-sidebar'
 import { getInitials } from '@/lib/utils'
 import { useStudents, useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks/useAdmin'
-import { MobileDataCard, MobileDataCardList, MobileDataCardSkeleton } from '@/components/tables/MobileDataCard'
+import { MobileDataCard, MobileDataCardList } from '@/components/tables/MobileDataCard'
 import { toast } from 'sonner'
 import type { User } from '@/api/admin.api'
 
@@ -476,7 +476,7 @@ export function StudentsPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[150px]">
+            <SelectTrigger className="w-full sm:w-37.5">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -513,7 +513,11 @@ export function StudentsPage() {
                     variant: student.status?.toLowerCase() === 'active' ? 'default' : 'secondary',
                   }}
                   metadata={student.city ? [
-                    { value: `${student.city}${student.state ? `, ${student.state}` : ''}`, icon: <MapPin /> }
+                    {
+                      label: 'Location',
+                      value: `${student.city}${student.state ? `, ${student.state}` : ''}`,
+                      icon: <MapPin />,
+                    }
                   ] : undefined}
                   actions={isAdmin ? [
                     { label: 'View Profile', href: `/students/${student.id}` },
