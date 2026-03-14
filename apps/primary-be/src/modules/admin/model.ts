@@ -1,5 +1,5 @@
 import { prisma, Prisma } from 'db';
-import { AttendanceStatus, ChatRoomType, UserRole } from 'db';
+import { AttendanceStatus, ChatRoomType, MessagePermission, MessageType, UserRole } from 'db';
 
 export type ServiceResult<T> =
   | { success: true; data: T }
@@ -95,9 +95,21 @@ export const chatRoomSelect = {
   id: true,
   name: true,
   type: true,
-  batch: { select: { id: true, name: true } },
+  messagingMode: true,
+  batch: { select: { id: true, name: true, course: { select: { id: true, name: true } } } },
   createdAt: true,
 } satisfies Prisma.ChatRoomSelect;
+
+export const chatMessageSelect = {
+  id: true,
+  content: true,
+  messageType: true,
+  fileUrl: true,
+  isAnnouncement: true,
+  isPinned: true,
+  sender: { select: { id: true, name: true, role: true } },
+  createdAt: true,
+} satisfies Prisma.ChatMessageSelect;
 
 export const resourceSelect = {
   id: true,
@@ -105,11 +117,21 @@ export const resourceSelect = {
   description: true,
   fileUrl: true,
   fileType: true,
-  batch: { select: { id: true, name: true } },
+  batch: { select: { id: true, name: true, course: { select: { id: true, name: true } } } },
   subject: { select: { id: true, name: true } },
   teacher: { select: { id: true, name: true } },
   createdAt: true,
 } satisfies Prisma.ResourceSelect;
+
+export const notificationSelect = {
+  id: true,
+  type: true,
+  title: true,
+  message: true,
+  isRead: true,
+  entityId: true,
+  createdAt: true,
+} satisfies Prisma.NotificationSelect;
 
 export type UserRow = Prisma.UserGetPayload<{ select: typeof userSelect }>;
 export type CourseRow = Prisma.CourseGetPayload<{ select: typeof courseSelect }>;
@@ -118,7 +140,9 @@ export type SubjectRow = Prisma.SubjectGetPayload<{ select: typeof subjectSelect
 export type EnrollmentRow = Prisma.EnrollmentGetPayload<{ select: typeof enrollmentSelect }>;
 export type AttendanceRow = Prisma.AttendanceGetPayload<{ select: typeof attendanceSelect }>;
 export type ChatRoomRow = Prisma.ChatRoomGetPayload<{ select: typeof chatRoomSelect }>;
+export type ChatMessageRow = Prisma.ChatMessageGetPayload<{ select: typeof chatMessageSelect }>;
 export type ResourceRow = Prisma.ResourceGetPayload<{ select: typeof resourceSelect }>;
+export type NotificationRow = Prisma.NotificationGetPayload<{ select: typeof notificationSelect }>;
 
 export interface CreateCourseInput {
   name: string;
@@ -182,9 +206,26 @@ export interface UpdateAttendanceInput {
 }
 
 export interface CreateChatRoomInput {
-  batchId: string;
+  batchId?: string;
   type: ChatRoomType;
   name?: string;
+}
+
+export interface UpdateChatRoomInput {
+  messagingMode?: MessagePermission;
+  name?: string;
+}
+
+export interface SendAdminMessageInput {
+  content: string;
+  messageType?: MessageType;
+  fileUrl?: string;
+  isAnnouncement?: boolean;
+}
+
+export interface ResourceQueryParams {
+  batchId?: string;
+  subjectId?: string;
 }
 
 export interface CreateResourceInput {
@@ -245,8 +286,13 @@ export type AttendanceQueryParams = {
   date?: string;
 };
 
+export type MessagesQueryParams = {
+  limit?: string;
+  before?: string;
+};
+
 export type CreateChatRoomRequest = {
-  batchId: string;
+  batchId?: string;
   type: ChatRoomType;
   name?: string;
 };
@@ -258,6 +304,10 @@ export type CreateResourceRequest = {
   fileUrl: string;
   description?: string;
   fileType?: string;
+};
+
+export type SendInstituteAnnouncementRequest = {
+  content: string;
 };
 
 export type CreateEnrollmentRequest = {

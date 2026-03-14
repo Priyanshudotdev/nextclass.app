@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
-import { prisma, UserRole, AttendanceStatus } from 'db';
+import {
+  prisma,
+  UserRole,
+  AttendanceStatus,
+  MessagePermission,
+  MessageType,
+  NotificationType,
+} from 'db';
 import bcrypt from 'bcryptjs';
 import * as Model from './model';
+import { publishChatMessageEvent } from '../../lib/realtime-events';
 
 const HTTP_STATUS: Record<Model.ServiceErrorCode, number> = {
   NOT_FOUND: 404,
@@ -392,9 +400,23 @@ async function svcCreateBatch(
   try {
     const course = await prisma.course.findFirst({ where: { id: input.courseId, instituteId } });
     if (!course) return Model.fail('Course not found', 'NOT_FOUND');
-    return Model.ok(
-      await prisma.batch.create({ data: { instituteId, ...input }, select: Model.batchSelect })
-    );
+    const batch = await prisma.$transaction(async (tx) => {
+      const created = await tx.batch.create({
+        data: { instituteId, ...input },
+        select: Model.batchSelect,
+      });
+      await tx.chatRoom.create({
+        data: {
+          instituteId,
+          batchId: created.id,
+          type: 'DISCUSSION',
+          name: `${created.name} - Discussion`,
+          messagingMode: MessagePermission.EVERYONE,
+        },
+      });
+      return created;
+    });
+    return Model.ok(batch);
   } catch {
     return Model.fail('Failed to create batch', 'INTERNAL_ERROR');
   }
@@ -762,11 +784,54 @@ async function svcGetChatRooms(
   }
 }
 
+async function svcGetChatMessages(
+  instituteId: string,
+  chatRoomId: string,
+  limit = 50,
+  before?: string
+): Promise<Model.ServiceResult<Model.ChatMessageRow[]>> {
+  try {
+    const room = await prisma.chatRoom.findFirst({ where: { id: chatRoomId, instituteId } });
+    if (!room) return Model.fail('Chat room not found', 'NOT_FOUND');
+    return Model.ok(
+      await prisma.chatMessage.findMany({
+        where: { chatRoomId, ...(before && { id: { lt: before } }) },
+        select: Model.chatMessageSelect,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to fetch messages', 'INTERNAL_ERROR');
+  }
+}
+
 async function svcCreateChatRoom(
   instituteId: string,
   input: Model.CreateChatRoomInput
 ): Promise<Model.ServiceResult<Model.ChatRoomRow>> {
   try {
+    if (input.type === 'ANNOUNCEMENT') {
+      // Institute-level announcement room — no batchId required
+      const existing = await prisma.chatRoom.findFirst({
+        where: { instituteId, type: 'ANNOUNCEMENT', batchId: null },
+      });
+      if (existing)
+        return Model.fail('Institute announcement room already exists', 'ALREADY_EXISTS');
+      return Model.ok(
+        await prisma.chatRoom.create({
+          data: {
+            instituteId,
+            type: 'ANNOUNCEMENT',
+            name: input.name ?? 'Institute Announcements',
+            messagingMode: MessagePermission.ADMIN_ONLY,
+          },
+          select: Model.chatRoomSelect,
+        })
+      );
+    }
+    if (!input.batchId)
+      return Model.fail('batchId is required for non-announcement rooms', 'VALIDATION_ERROR');
     const batch = await prisma.batch.findFirst({ where: { id: input.batchId, instituteId } });
     if (!batch) return Model.fail('Batch not found', 'NOT_FOUND');
     const existing = await prisma.chatRoom.findUnique({
@@ -786,12 +851,17 @@ async function svcCreateChatRoom(
 }
 
 async function svcGetResources(
-  instituteId: string
+  instituteId: string,
+  params?: Model.ResourceQueryParams
 ): Promise<Model.ServiceResult<Model.ResourceRow[]>> {
   try {
     return Model.ok(
       await prisma.resource.findMany({
-        where: { instituteId },
+        where: {
+          instituteId,
+          ...(params?.batchId && { batchId: params.batchId }),
+          ...(params?.subjectId && { subjectId: params.subjectId }),
+        },
         select: Model.resourceSelect,
         orderBy: { createdAt: 'desc' },
       })
@@ -825,6 +895,176 @@ async function svcCreateResource(
     );
   } catch {
     return Model.fail('Failed to create resource', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcUpdateChatRoom(
+  chatRoomId: string,
+  instituteId: string,
+  input: Model.UpdateChatRoomInput
+): Promise<Model.ServiceResult<Model.ChatRoomRow>> {
+  try {
+    const room = await prisma.chatRoom.findFirst({ where: { id: chatRoomId, instituteId } });
+    if (!room) return Model.fail('Chat room not found', 'NOT_FOUND');
+    return Model.ok(
+      await prisma.chatRoom.update({
+        where: { id: chatRoomId },
+        data: input,
+        select: Model.chatRoomSelect,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to update chat room', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcSendAdminChatMessage(
+  adminId: string,
+  chatRoomId: string,
+  instituteId: string,
+  input: Model.SendAdminMessageInput
+): Promise<Model.ServiceResult<Model.ChatMessageRow>> {
+  if (!input.content?.trim()) return Model.fail('Message content is required', 'VALIDATION_ERROR');
+  try {
+    const room = await prisma.chatRoom.findFirst({ where: { id: chatRoomId, instituteId } });
+    if (!room) return Model.fail('Chat room not found', 'NOT_FOUND');
+    const message = await prisma.chatMessage.create({
+      data: {
+        chatRoomId,
+        senderId: adminId,
+        content: input.content,
+        messageType: input.messageType ?? MessageType.TEXT,
+        fileUrl: input.fileUrl,
+        isAnnouncement: input.isAnnouncement ?? false,
+      },
+      select: Model.chatMessageSelect,
+    });
+    await publishChatMessageEvent({ roomId: chatRoomId, message });
+    return Model.ok(message);
+  } catch {
+    return Model.fail('Failed to send message', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcEnsureInstituteAnnouncementRoom(
+  instituteId: string
+): Promise<Model.ServiceResult<Model.ChatRoomRow>> {
+  try {
+    const existing = await prisma.chatRoom.findFirst({
+      where: { instituteId, type: 'ANNOUNCEMENT', batchId: null },
+      select: Model.chatRoomSelect,
+    });
+    if (existing) return Model.ok(existing);
+    return Model.ok(
+      await prisma.chatRoom.create({
+        data: {
+          instituteId,
+          type: 'ANNOUNCEMENT',
+          name: 'Institute Announcements',
+          messagingMode: MessagePermission.ADMIN_ONLY,
+        },
+        select: Model.chatRoomSelect,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to ensure institute announcement room', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcSendInstituteAnnouncement(
+  adminId: string,
+  instituteId: string,
+  content: string
+): Promise<Model.ServiceResult<Model.ChatMessageRow>> {
+  if (!content?.trim()) return Model.fail('Announcement content is required', 'VALIDATION_ERROR');
+  try {
+    const roomResult = await svcEnsureInstituteAnnouncementRoom(instituteId);
+    if (!roomResult.success) return roomResult;
+    const room = roomResult.data;
+    const enrollments = await prisma.enrollment.findMany({
+      where: { batch: { instituteId } },
+      select: { studentId: true },
+    });
+    const uniqueStudentIds = [...new Set(enrollments.map((e) => e.studentId))];
+    const message = await prisma.$transaction(async (tx) => {
+      const msg = await tx.chatMessage.create({
+        data: {
+          chatRoomId: room.id,
+          senderId: adminId,
+          content,
+          messageType: MessageType.TEXT,
+          isAnnouncement: true,
+        },
+        select: Model.chatMessageSelect,
+      });
+      if (uniqueStudentIds.length > 0) {
+        await tx.notification.createMany({
+          data: uniqueStudentIds.map((studentId) => ({
+            userId: studentId,
+            type: NotificationType.ANNOUNCEMENT,
+            title: 'New Announcement',
+            message: content.substring(0, 100),
+            entityId: msg.id,
+          })),
+          skipDuplicates: true,
+        });
+      }
+      return msg;
+    });
+    await publishChatMessageEvent({ roomId: room.id, message });
+    return Model.ok(message);
+  } catch {
+    return Model.fail('Failed to send institute announcement', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcGetNotifications(
+  userId: string
+): Promise<Model.ServiceResult<Model.NotificationRow[]>> {
+  try {
+    return Model.ok(
+      await prisma.notification.findMany({
+        where: { userId },
+        select: Model.notificationSelect,
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to fetch notifications', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcMarkNotificationRead(
+  userId: string,
+  notificationId: string
+): Promise<Model.ServiceResult<Model.NotificationRow>> {
+  try {
+    const notification = await prisma.notification.findFirst({
+      where: { id: notificationId, userId },
+    });
+    if (!notification) return Model.fail('Notification not found', 'NOT_FOUND');
+    return Model.ok(
+      await prisma.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true },
+        select: Model.notificationSelect,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to mark notification as read', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcMarkAllNotificationsRead(userId: string): Promise<Model.ServiceResult<number>> {
+  try {
+    const result = await prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+    return Model.ok(result.count);
+  } catch {
+    return Model.fail('Failed to mark notifications as read', 'INTERNAL_ERROR');
   }
 }
 
@@ -1079,17 +1319,91 @@ export async function getChatRooms(req: Request, res: Response) {
   return send(res, await svcGetChatRooms(req.user!.instituteId));
 }
 
+export async function getChatMessages(
+  req: Request<{ chatRoomId: string }, unknown, unknown, Model.MessagesQueryParams>,
+  res: Response
+) {
+  const { limit, before } = req.query;
+  return send(
+    res,
+    await svcGetChatMessages(
+      req.user!.instituteId,
+      req.params.chatRoomId,
+      limit ? parseInt(limit, 10) : 50,
+      before
+    )
+  );
+}
+
 export async function createChatRoom(
   req: Request<unknown, unknown, Model.CreateChatRoomRequest>,
   res: Response
 ) {
   const { batchId, type, name } = req.body;
-  if (!batchId || !type) return res.status(400).json({ error: 'batchId and type are required' });
+  if (!type) return res.status(400).json({ error: 'type is required' });
+  if (type !== 'ANNOUNCEMENT' && !batchId)
+    return res.status(400).json({ error: 'batchId is required for non-announcement rooms' });
   return send(res, await svcCreateChatRoom(req.user!.instituteId, { batchId, type, name }), 201);
 }
 
-export async function getResources(req: Request, res: Response) {
-  return send(res, await svcGetResources(req.user!.instituteId));
+export async function updateChatRoom(
+  req: Request<{ chatRoomId: string }, unknown, Model.UpdateChatRoomInput>,
+  res: Response
+) {
+  return send(res, await svcUpdateChatRoom(req.params.chatRoomId, req.user!.instituteId, req.body));
+}
+
+export async function sendAdminChatMessage(
+  req: Request<{ chatRoomId: string }, unknown, Model.SendAdminMessageInput>,
+  res: Response
+) {
+  return send(
+    res,
+    await svcSendAdminChatMessage(
+      req.user!.id,
+      req.params.chatRoomId,
+      req.user!.instituteId,
+      req.body
+    ),
+    201
+  );
+}
+
+export async function getInstituteAnnouncementRoom(req: Request, res: Response) {
+  return send(res, await svcEnsureInstituteAnnouncementRoom(req.user!.instituteId));
+}
+
+export async function sendInstituteAnnouncement(
+  req: Request<unknown, unknown, Model.SendInstituteAnnouncementRequest>,
+  res: Response
+) {
+  return send(
+    res,
+    await svcSendInstituteAnnouncement(req.user!.id, req.user!.instituteId, req.body.content),
+    201
+  );
+}
+
+export async function getNotifications(req: Request, res: Response) {
+  return send(res, await svcGetNotifications(req.user!.id));
+}
+
+export async function markNotificationRead(
+  req: Request<{ notificationId: string }>,
+  res: Response
+) {
+  return send(res, await svcMarkNotificationRead(req.user!.id, req.params.notificationId));
+}
+
+export async function markAllNotificationsRead(req: Request, res: Response) {
+  return send(res, await svcMarkAllNotificationsRead(req.user!.id));
+}
+
+export async function getResources(
+  req: Request<unknown, unknown, unknown, Model.ResourceQueryParams>,
+  res: Response
+) {
+  return send(res, await svcGetResources(req.user!.instituteId, req.query));
 }
 
 export async function createResource(

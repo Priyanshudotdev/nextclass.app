@@ -17,6 +17,12 @@ enum UserRole {
 enum ChatRoomType {
   DISCUSSION
   RESOURCE
+  ANNOUNCEMENT
+}
+
+enum MessagePermission {
+  EVERYONE
+  ADMIN_ONLY
 }
 
 enum AttendanceStatus {
@@ -247,14 +253,15 @@ model Attendance {
 }
 
 model ChatRoom {
-  id          String       @id @default(cuid())
-  instituteId String
-  batchId     String
-  type        ChatRoomType
-  name        String? // e.g. "General", "Math Resources"
+  id            String            @id @default(cuid())
+  instituteId   String
+  batchId       String? // null for institute-level ANNOUNCEMENT rooms
+  type          ChatRoomType
+  name          String? // e.g. "General", "Math Resources"
+  messagingMode MessagePermission @default(EVERYONE)
 
   institute Institute     @relation(fields: [instituteId], references: [id])
-  batch     Batch         @relation(fields: [batchId], references: [id])
+  batch     Batch?        @relation(fields: [batchId], references: [id])
   messages  ChatMessage[]
 
   createdAt DateTime @default(now())

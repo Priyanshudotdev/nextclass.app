@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma, MessageType } from 'db';
 import * as Model from './model';
+import { publishChatMessageEvent } from '../../lib/realtime-events';
 
 const HTTP_STATUS: Record<Model.ServiceErrorCode, number> = {
   NOT_FOUND: 404,
@@ -155,13 +156,21 @@ async function svcGetChatRooms(
       select: { batchId: true },
     });
     const batchIds = enrollments.map((e) => e.batchId);
-    return Model.ok(
-      await prisma.chatRoom.findMany({
-        where: { instituteId, batchId: { in: batchIds } },
+    const batchRooms = await prisma.chatRoom.findMany({
+      where: { instituteId, batchId: { in: batchIds } },
+      select: Model.chatRoomSelect,
+      orderBy: { createdAt: 'desc' },
+    });
+    // Append the institute-wide announcement room if the student has any enrollment
+    const rooms: Model.ChatRoomRow[] = [...batchRooms];
+    if (batchIds.length > 0) {
+      const announcementRoom = await prisma.chatRoom.findFirst({
+        where: { instituteId, type: 'ANNOUNCEMENT', batchId: null },
         select: Model.chatRoomSelect,
-        orderBy: { createdAt: 'desc' },
-      })
-    );
+      });
+      if (announcementRoom) rooms.unshift(announcementRoom);
+    }
+    return Model.ok(rooms);
   } catch {
     return Model.fail('Failed to fetch chat rooms', 'INTERNAL_ERROR');
   }
@@ -175,15 +184,21 @@ async function svcGetChatMessages(
   before?: string
 ): Promise<Model.ServiceResult<Model.ChatMessageRow[]>> {
   try {
-    const enrollments = await prisma.enrollment.findMany({
-      where: { studentId, instituteId },
-      select: { batchId: true },
-    });
-    const batchIds = enrollments.map((e) => e.batchId);
     const chatRoom = await prisma.chatRoom.findFirst({
-      where: { id: chatRoomId, batchId: { in: batchIds } },
+      where: { id: chatRoomId, instituteId },
     });
-    if (!chatRoom) return Model.fail('Chat room not found or access denied', 'FORBIDDEN');
+    if (!chatRoom) return Model.fail('Chat room not found', 'NOT_FOUND');
+
+    if (chatRoom.type === 'ANNOUNCEMENT' && chatRoom.batchId === null) {
+      const enrollment = await prisma.enrollment.findFirst({ where: { studentId, instituteId } });
+      if (!enrollment) return Model.fail('Access denied', 'FORBIDDEN');
+    } else {
+      const enrollment = await prisma.enrollment.findFirst({
+        where: { studentId, instituteId, batchId: chatRoom.batchId ?? undefined },
+      });
+      if (!enrollment) return Model.fail('Access denied', 'FORBIDDEN');
+    }
+
     return Model.ok(
       await prisma.chatMessage.findMany({
         where: {
@@ -208,29 +223,85 @@ async function svcSendMessage(
 ): Promise<Model.ServiceResult<Model.ChatMessageRow>> {
   if (!input.content?.trim()) return Model.fail('Message content is required', 'VALIDATION_ERROR');
   try {
-    const enrollments = await prisma.enrollment.findMany({
-      where: { studentId, instituteId },
-      select: { batchId: true },
-    });
-    const batchIds = enrollments.map((e) => e.batchId);
     const chatRoom = await prisma.chatRoom.findFirst({
-      where: { id: chatRoomId, batchId: { in: batchIds } },
+      where: { id: chatRoomId, instituteId },
     });
-    if (!chatRoom) return Model.fail('Chat room not found or access denied', 'FORBIDDEN');
+    if (!chatRoom) return Model.fail('Chat room not found', 'NOT_FOUND');
+    if (chatRoom.type === 'ANNOUNCEMENT')
+      return Model.fail('Announcement rooms are read-only', 'FORBIDDEN');
+    if (chatRoom.messagingMode === 'ADMIN_ONLY')
+      return Model.fail('Only admins can send messages in this room', 'FORBIDDEN');
+
+    const enrollment = await prisma.enrollment.findFirst({
+      where: { studentId, instituteId, batchId: chatRoom.batchId ?? undefined },
+    });
+    if (!enrollment) return Model.fail('Access denied', 'FORBIDDEN');
+
+    const message = await prisma.chatMessage.create({
+      data: {
+        chatRoomId,
+        senderId: studentId,
+        content: input.content,
+        messageType: input.messageType || MessageType.TEXT,
+        fileUrl: input.fileUrl,
+      },
+      select: Model.chatMessageSelect,
+    });
+
+    await publishChatMessageEvent({ roomId: chatRoomId, message });
+    return Model.ok(message);
+  } catch {
+    return Model.fail('Failed to send message', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcGetNotifications(
+  userId: string
+): Promise<Model.ServiceResult<Model.NotificationRow[]>> {
+  try {
     return Model.ok(
-      await prisma.chatMessage.create({
-        data: {
-          chatRoomId,
-          senderId: studentId,
-          content: input.content,
-          messageType: input.messageType || MessageType.TEXT,
-          fileUrl: input.fileUrl,
-        },
-        select: Model.chatMessageSelect,
+      await prisma.notification.findMany({
+        where: { userId },
+        select: Model.notificationSelect,
+        orderBy: { createdAt: 'desc' },
+        take: 50,
       })
     );
   } catch {
-    return Model.fail('Failed to send message', 'INTERNAL_ERROR');
+    return Model.fail('Failed to fetch notifications', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcMarkNotificationRead(
+  userId: string,
+  notificationId: string
+): Promise<Model.ServiceResult<Model.NotificationRow>> {
+  try {
+    const notification = await prisma.notification.findFirst({
+      where: { id: notificationId, userId },
+    });
+    if (!notification) return Model.fail('Notification not found', 'NOT_FOUND');
+    return Model.ok(
+      await prisma.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true },
+        select: Model.notificationSelect,
+      })
+    );
+  } catch {
+    return Model.fail('Failed to mark notification as read', 'INTERNAL_ERROR');
+  }
+}
+
+async function svcMarkAllNotificationsRead(userId: string): Promise<Model.ServiceResult<number>> {
+  try {
+    const result = await prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+    return Model.ok(result.count);
+  } catch {
+    return Model.fail('Failed to mark notifications as read', 'INTERNAL_ERROR');
   }
 }
 
@@ -313,6 +384,21 @@ export async function sendMessage(
     }),
     201
   );
+}
+
+export async function getNotifications(req: Request, res: Response) {
+  return send(res, await svcGetNotifications(req.user!.id));
+}
+
+export async function markNotificationRead(
+  req: Request<{ notificationId: string }>,
+  res: Response
+) {
+  return send(res, await svcMarkNotificationRead(req.user!.id, req.params.notificationId));
+}
+
+export async function markAllNotificationsRead(req: Request, res: Response) {
+  return send(res, await svcMarkAllNotificationsRead(req.user!.id));
 }
 
 // --- Dashboard ---

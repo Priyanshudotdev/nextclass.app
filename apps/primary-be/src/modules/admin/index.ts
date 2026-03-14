@@ -75,6 +75,16 @@ router.delete('/attendance/:attendanceId', adminService.deleteAttendance);
 // ============================================
 router.get('/chatrooms', adminService.getChatRooms);
 router.post('/chatrooms', adminService.createChatRoom);
+// Institute-level routes must be before /:chatRoomId to avoid param matching
+router.get('/chatrooms/institute', adminService.getInstituteAnnouncementRoom);
+router.post('/chatrooms/institute/messages', adminService.sendInstituteAnnouncement);
+router.get('/chatrooms/:chatRoomId/messages', adminService.getChatMessages);
+router.patch('/chatrooms/:chatRoomId', adminService.updateChatRoom);
+router.post('/chatrooms/:chatRoomId/messages', adminService.sendAdminChatMessage);
+
+router.get('/notifications', adminService.getNotifications);
+router.patch('/notifications/:notificationId/read', adminService.markNotificationRead);
+router.patch('/notifications/read-all', adminService.markAllNotificationsRead);
 
 // ============================================
 // Resource Management Routes

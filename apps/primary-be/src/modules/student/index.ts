@@ -27,4 +27,8 @@ router.get('/chatrooms', studentService.getChatRooms);
 router.get('/chatrooms/:chatRoomId/messages', studentService.getChatMessages);
 router.post('/chatrooms/:chatRoomId/messages', studentService.sendMessage);
 
+router.get('/notifications', studentService.getNotifications);
+router.patch('/notifications/:notificationId/read', studentService.markNotificationRead);
+router.patch('/notifications/read-all', studentService.markAllNotificationsRead);
+
 export default router;

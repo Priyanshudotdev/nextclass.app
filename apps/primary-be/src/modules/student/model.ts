@@ -80,6 +80,7 @@ export const resourceSelect = {
   description: true,
   fileUrl: true,
   fileType: true,
+  batch: { select: { id: true, name: true, course: { select: { id: true, name: true } } } },
   subject: { select: { id: true, name: true } },
   teacher: { select: { id: true, name: true } },
   createdAt: true,
@@ -89,9 +90,20 @@ export const chatRoomSelect = {
   id: true,
   name: true,
   type: true,
-  batch: { select: { id: true, name: true } },
+  messagingMode: true,
+  batch: { select: { id: true, name: true, course: { select: { id: true, name: true } } } },
   createdAt: true,
 } satisfies Prisma.ChatRoomSelect;
+
+export const notificationSelect = {
+  id: true,
+  type: true,
+  title: true,
+  message: true,
+  isRead: true,
+  entityId: true,
+  createdAt: true,
+} satisfies Prisma.NotificationSelect;
 
 export const chatMessageSelect = {
   id: true,
@@ -109,6 +121,7 @@ export type SubjectRow = Prisma.SubjectGetPayload<{ select: typeof subjectSelect
 export type ResourceRow = Prisma.ResourceGetPayload<{ select: typeof resourceSelect }>;
 export type ChatRoomRow = Prisma.ChatRoomGetPayload<{ select: typeof chatRoomSelect }>;
 export type ChatMessageRow = Prisma.ChatMessageGetPayload<{ select: typeof chatMessageSelect }>;
+export type NotificationRow = Prisma.NotificationGetPayload<{ select: typeof notificationSelect }>;
 
 export interface UpdateProfileInput {
   name?: string;

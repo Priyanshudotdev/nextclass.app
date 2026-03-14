@@ -31,11 +31,16 @@ router.delete('/units/:unitId', Service.deleteUnit);
 router.patch('/units/reorder', Service.reorderUnits);
 
 router.get('/chat-rooms', Service.getChatRooms);
+router.post('/chat-rooms/institute/messages', Service.sendInstituteAnnouncement);
 router.get('/chat-rooms/:chatRoomId/messages', Service.getChatMessages);
 router.get('/chat-rooms/:chatRoomId/pinned', Service.getPinnedMessages);
 router.post('/chat-rooms/:chatRoomId/messages', Service.sendMessage);
 router.post('/chat-rooms/:chatRoomId/announcements', Service.sendAnnouncement);
 router.post('/chat-rooms/:chatRoomId/messages/:messageId/pin', Service.pinMessage);
 router.delete('/chat-rooms/:chatRoomId/messages/:messageId/pin', Service.unpinMessage);
+
+router.get('/notifications', Service.getNotifications);
+router.patch('/notifications/:notificationId/read', Service.markNotificationRead);
+router.patch('/notifications/read-all', Service.markAllNotificationsRead);
 
 export default router;

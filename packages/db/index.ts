@@ -7,6 +7,7 @@ export {
   UserRole,
   AttendanceStatus,
   ChatRoomType,
+  MessagePermission,
   MessageType,
   NotificationType,
 } from './generated/prisma/client';
