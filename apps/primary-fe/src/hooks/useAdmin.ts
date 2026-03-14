@@ -53,6 +53,10 @@ export const adminKeys = {
     [...adminKeys.all, 'resources', params] as const,
 };
 
+function isAdminQueryFamily(queryKey: readonly unknown[], family: string) {
+  return queryKey[0] === 'admin' && queryKey[1] === family;
+}
+
 // ============================================
 // Dashboard
 // ============================================
@@ -99,9 +103,13 @@ export function useCreateUser() {
     onSuccess: (newUser) => {
       // Invalidate the relevant query based on role
       if (newUser.role === 'STUDENT') {
-        queryClient.invalidateQueries({ queryKey: adminKeys.students() });
+        queryClient.invalidateQueries({
+          predicate: (query) => isAdminQueryFamily(query.queryKey, 'students'),
+        });
       } else if (newUser.role === 'TEACHER') {
-        queryClient.invalidateQueries({ queryKey: adminKeys.teachers() });
+        queryClient.invalidateQueries({
+          predicate: (query) => isAdminQueryFamily(query.queryKey, 'teachers'),
+        });
       }
       queryClient.invalidateQueries({ queryKey: adminKeys.dashboard() });
     },
@@ -433,8 +441,10 @@ export function useCreateTeacherAssignment() {
       adminApi.createTeacherAssignment(input),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: adminKeys.teacherAssignments(),
+        predicate: (query) =>
+          isAdminQueryFamily(query.queryKey, 'teacherAssignments'),
       });
+      queryClient.invalidateQueries({ queryKey: adminKeys.dashboard() });
     },
   });
 }
@@ -447,8 +457,10 @@ export function useDeleteTeacherAssignment() {
       adminApi.deleteTeacherAssignment(assignmentId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: adminKeys.teacherAssignments(),
+        predicate: (query) =>
+          isAdminQueryFamily(query.queryKey, 'teacherAssignments'),
       });
+      queryClient.invalidateQueries({ queryKey: adminKeys.dashboard() });
     },
   });
 }
