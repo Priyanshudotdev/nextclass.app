@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -20,9 +20,12 @@ import {
   MoreVertical,
   Megaphone,
   ArrowLeft,
+  Lock,
+  Settings2,
 } from 'lucide-react'
-import { cn, getInitials, formatDate } from '@/lib/utils'
+import { cn, getInitials, formatDate, formatTime } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
+import { useIsMobile } from '@/hooks/use-sidebar'
 import {
   useChatRooms,
   useChatMessages,
@@ -30,37 +33,74 @@ import {
   useSendAnnouncement,
   usePinMessage,
   useUnpinMessage,
+  useUpdateChatRoom,
+  useSendInstituteAnnouncement,
+  useChatRealtime,
 } from '@/hooks/useChat'
 import type { ChatMessage } from '@/api/chat.api'
 import { toast } from 'sonner'
 
 export function ChatPage() {
   const { user } = useAuth()
+  const isMobile = useIsMobile()
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [messageInput, setMessageInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const isTeacherOrAdmin = user?.role === 'TEACHER' || user?.role === 'ADMIN'
+  const isAdmin = user?.role === 'ADMIN'
+  const isStudent = user?.role === 'STUDENT'
 
   // Chat hooks
   const { data: chatRooms, isLoading: isLoadingRooms } = useChatRooms()
   const { data: messages, isLoading: isLoadingMessages } = useChatMessages(selectedRoomId)
   const sendMessageMutation = useSendMessage()
   const sendAnnouncementMutation = useSendAnnouncement()
+  const sendInstituteAnnouncementMutation = useSendInstituteAnnouncement()
   const pinMessageMutation = usePinMessage()
   const unpinMessageMutation = useUnpinMessage()
+  const updateChatRoomMutation = useUpdateChatRoom()
+  useChatRealtime(selectedRoomId)
 
   const filteredRooms = chatRooms?.filter((room) =>
     room.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || []
 
+  const sortedRooms = [...filteredRooms].sort((a, b) => {
+    const aInstituteAnnouncement = a.type === 'ANNOUNCEMENT' && !a.batch
+    const bInstituteAnnouncement = b.type === 'ANNOUNCEMENT' && !b.batch
+    if (aInstituteAnnouncement !== bInstituteAnnouncement) return aInstituteAnnouncement ? -1 : 1
+    return 0
+  })
+
   const selectedRoom = chatRooms?.find((r) => r.id === selectedRoomId)
+  const orderedMessages = useMemo(() => {
+    if (!messages) return []
+    return [...messages].sort((a, b) => {
+      const timeDiff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      if (timeDiff !== 0) return timeDiff
+      return a.id.localeCompare(b.id)
+    })
+  }, [messages])
+  const isInstituteAnnouncementRoom = selectedRoom?.type === 'ANNOUNCEMENT' && !selectedRoom?.batch
+  const isStudentReadOnly =
+    isStudent &&
+    !!selectedRoom &&
+    (isInstituteAnnouncementRoom || selectedRoom.messagingMode === 'ADMIN_ONLY')
+  const canSendMessage = !!selectedRoom && !isStudentReadOnly
+
+  // Keep a room selected after refresh so chat loads immediately.
+  useEffect(() => {
+    if (!isMobile && !selectedRoomId && sortedRooms.length > 0) {
+      setSelectedRoomId(sortedRooms[0].id)
+    }
+  }, [isMobile, selectedRoomId, sortedRooms])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [orderedMessages])
 
   const handleSendMessage = async (isAnnouncement = false) => {
     if (!messageInput.trim() || !selectedRoomId) return
@@ -68,7 +108,10 @@ export function ChatPage() {
     try {
       const input = { content: messageInput.trim(), messageType: 'TEXT' as const }
       
-      if (isAnnouncement && isTeacherOrAdmin) {
+      if (isInstituteAnnouncementRoom && isTeacherOrAdmin) {
+        await sendInstituteAnnouncementMutation.mutateAsync(input)
+        toast.success('Institute announcement sent')
+      } else if (isAnnouncement && user?.role === 'TEACHER') {
         await sendAnnouncementMutation.mutateAsync({
           chatRoomId: selectedRoomId,
           input,
@@ -81,7 +124,7 @@ export function ChatPage() {
         })
       }
       setMessageInput('')
-    } catch (err) {
+    } catch {
       toast.error('Failed to send message')
     }
   }
@@ -103,7 +146,7 @@ export function ChatPage() {
         })
         toast.success('Message pinned')
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to update pin status')
     }
   }
@@ -115,10 +158,27 @@ export function ChatPage() {
     }
   }
 
-  const isSending = sendMessageMutation.isPending || sendAnnouncementMutation.isPending
+  const isSending =
+    sendMessageMutation.isPending ||
+    sendAnnouncementMutation.isPending ||
+    sendInstituteAnnouncementMutation.isPending
+
+  const handleMessagingModeChange = async (messagingMode: 'EVERYONE' | 'ADMIN_ONLY') => {
+    if (!selectedRoomId) return
+    try {
+      await updateChatRoomMutation.mutateAsync({ chatRoomId: selectedRoomId, messagingMode })
+      toast.success(
+        messagingMode === 'ADMIN_ONLY'
+          ? 'Room set to admins-only messaging'
+          : 'Room set to everyone messaging'
+      )
+    } catch {
+      toast.error('Failed to update room settings')
+    }
+  }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-0 md:gap-4">
+    <div className="flex h-[calc(100vh-8rem)] min-h-0 gap-0 md:gap-4">
       {/* Room List */}
       <Card
         className={cn(
@@ -146,7 +206,7 @@ export function ChatPage() {
               </div>
             ) : filteredRooms.length > 0 ? (
               <div className="space-y-1">
-                {filteredRooms.map((room) => (
+                {sortedRooms.map((room) => (
                   <button
                     key={room.id}
                     onClick={() => setSelectedRoomId(room.id)}
@@ -158,12 +218,25 @@ export function ChatPage() {
                     )}
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <MessageSquare className="h-5 w-5 text-primary" />
+                      {room.type === 'ANNOUNCEMENT' && !room.batch ? (
+                        <Megaphone className="h-5 w-5 text-primary" />
+                      ) : (
+                        <MessageSquare className="h-5 w-5 text-primary" />
+                      )}
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <span className="font-medium">{room.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{room.name}</span>
+                        {room.messagingMode === 'ADMIN_ONLY' && (
+                          <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </div>
                       <p className="truncate text-sm text-muted-foreground">
-                        {room.batch?.name || 'Batch'}
+                        {room.type === 'ANNOUNCEMENT' && !room.batch
+                          ? 'Institute-wide channel'
+                          : room.batch
+                            ? `${room.batch.name} · ${room.batch.course?.name || 'Course'}`
+                            : 'Batch'}
                       </p>
                     </div>
                   </button>
@@ -185,12 +258,12 @@ export function ChatPage() {
       </Card>
 
       {/* Chat Panel */}
-      <Card className={cn('flex-1', selectedRoomId ? 'block' : 'hidden md:block')}>
-        <CardContent className="flex h-full flex-col p-0">
+      <Card className={cn('flex-1 overflow-hidden', selectedRoomId ? 'block' : 'hidden md:block')}>
+        <CardContent className="flex h-full min-h-0 flex-col p-0">
           {selectedRoom ? (
             <>
               {/* Header */}
-              <div className="flex items-center border-b p-4">
+              <div className="flex items-center justify-between border-b p-4">
                 <div className="flex items-center gap-2">
                   <Button
                     size="icon"
@@ -202,28 +275,64 @@ export function ChatPage() {
                   </Button>
                   <div>
                     <h2 className="font-semibold">{selectedRoom.name}</h2>
-                    <p className="text-sm text-muted-foreground">{selectedRoom.batch?.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isInstituteAnnouncementRoom
+                        ? 'Institute-wide announcements'
+                        : selectedRoom.batch
+                          ? `${selectedRoom.batch.name} · ${selectedRoom.batch.course?.name || 'Course'}`
+                          : ''}
+                    </p>
                   </div>
                 </div>
+                {isAdmin && selectedRoom.type !== 'ANNOUNCEMENT' && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Settings2 className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleMessagingModeChange('EVERYONE')}>
+                        Everyone can message
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleMessagingModeChange('ADMIN_ONLY')}>
+                        Only admins can message
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea className="min-h-0 flex-1 p-4">
                 {isLoadingMessages ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
-                ) : messages && messages.length > 0 ? (
-                  <div className="space-y-4">
-                    {messages.map((message: ChatMessage) => (
+                ) : orderedMessages.length > 0 ? (
+                  <div className="space-y-2 pb-2">
+                    {orderedMessages.map((message: ChatMessage, index) => {
+                      const prevMessage = index > 0 ? orderedMessages[index - 1] : null
+                      const groupedWithPrevious =
+                        !!prevMessage &&
+                        prevMessage.sender.id === message.sender.id &&
+                        Math.abs(
+                          new Date(message.createdAt).getTime() -
+                            new Date(prevMessage.createdAt).getTime()
+                        ) <
+                          5 * 60 * 1000
+
+                      return (
                       <MessageBubble
                         key={message.id}
                         message={message}
                         isOwn={message.sender.id === user?.id}
                         canPin={isTeacherOrAdmin}
+                        compact={groupedWithPrevious}
                         onPin={() => handlePinMessage(message.id, message.isPinned || false)}
                       />
-                    ))}
+                      )
+                    })}
                     <div ref={messagesEndRef} />
                   </div>
                 ) : (
@@ -237,37 +346,46 @@ export function ChatPage() {
 
               {/* Message Input */}
               <div className="border-t p-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Type a message..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={isSending}
-                    className="flex-1"
-                  />
-                  {isTeacherOrAdmin && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleSendMessage(true)}
-                      disabled={!messageInput.trim() || isSending}
-                      title="Send as announcement"
-                    >
-                      <Megaphone className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button
-                    onClick={() => handleSendMessage(false)}
-                    disabled={!messageInput.trim() || isSending}
-                  >
-                    {isSending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
+                {isStudentReadOnly && (
+                  <div className="mb-3 rounded-md border bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
+                    {isInstituteAnnouncementRoom
+                      ? 'This channel is read-only for students.'
+                      : 'Only admins can send messages in this room.'}
+                  </div>
+                )}
+                {canSendMessage ? (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder={isInstituteAnnouncementRoom ? 'Write institute announcement...' : 'Type a message...'}
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      disabled={isSending}
+                      className="flex-1"
+                    />
+                    {user?.role === 'TEACHER' && !isInstituteAnnouncementRoom && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleSendMessage(true)}
+                        disabled={!messageInput.trim() || isSending}
+                        title="Send as announcement"
+                      >
+                        <Megaphone className="h-4 w-4" />
+                      </Button>
                     )}
-                  </Button>
-                </div>
+                    <Button
+                      onClick={() => handleSendMessage(false)}
+                      disabled={!messageInput.trim() || isSending}
+                    >
+                      {isSending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </>
           ) : (
@@ -290,41 +408,47 @@ function MessageBubble({
   message,
   isOwn,
   canPin,
+  compact,
   onPin,
 }: {
   message: ChatMessage
   isOwn: boolean
   canPin: boolean
+  compact?: boolean
   onPin: () => void
 }) {
   return (
-    <div className={cn('flex gap-3', isOwn && 'flex-row-reverse')}>
-      <Avatar className="h-8 w-8 shrink-0">
-        <AvatarFallback className="text-xs">
-          {getInitials(message.sender.name)}
-        </AvatarFallback>
-      </Avatar>
-      <div className={cn('max-w-[70%] space-y-1', isOwn && 'items-end')}>
-        <div className={cn('flex items-center gap-2', isOwn && 'flex-row-reverse')}>
-          <span className="text-sm font-medium">{message.sender.name}</span>
-          {message.sender.role && (
-            <Badge variant="secondary" className="text-xs">
-              {message.sender.role}
-            </Badge>
-          )}
-          {message.isAnnouncement && (
-            <Badge variant="default" className="text-xs">
-              <Megaphone className="mr-1 h-3 w-3" />
-              Announcement
-            </Badge>
-          )}
-          {message.isPinned && (
-            <Pin className="h-3 w-3 text-primary" />
-          )}
-        </div>
+    <div className={cn('flex gap-2', compact ? 'mt-0.5' : 'mt-2', isOwn && 'flex-row-reverse')}>
+      {compact ? (
+        <div className="h-8 w-8 shrink-0" />
+      ) : (
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarFallback className="text-xs">
+            {getInitials(message.sender.name)}
+          </AvatarFallback>
+        </Avatar>
+      )}
+      <div className={cn('max-w-[82%] space-y-1', isOwn && 'items-end')}>
+        {!compact && (
+          <div className={cn('flex items-center gap-2', isOwn && 'flex-row-reverse')}>
+            <span className="text-sm font-medium">{message.sender.name}</span>
+            {message.sender.role && (
+              <Badge variant="secondary" className="text-xs">
+                {message.sender.role}
+              </Badge>
+            )}
+            {message.isAnnouncement && (
+              <Badge variant="default" className="text-xs">
+                <Megaphone className="mr-1 h-3 w-3" />
+                Announcement
+              </Badge>
+            )}
+            {message.isPinned && <Pin className="h-3 w-3 text-primary" />}
+          </div>
+        )}
         <div
           className={cn(
-            'rounded-lg p-3',
+            'rounded-2xl px-3 py-2.5',
             isOwn
               ? 'bg-primary text-primary-foreground'
               : message.isAnnouncement
@@ -335,7 +459,7 @@ function MessageBubble({
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
         </div>
         <div className={cn('flex items-center gap-2 text-xs text-muted-foreground', isOwn && 'flex-row-reverse')}>
-          <span>{formatDate(message.createdAt)}</span>
+          <span>{`${formatDate(message.createdAt)} ${formatTime(message.createdAt)}`}</span>
           {canPin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
