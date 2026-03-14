@@ -68,8 +68,9 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { cn, getInitials } from '@/lib/utils'
-import { useBatches, useEnrollments, useAttendance, useTeachers, useResources, useSubjects, useTeacherAssignments, useCreateTeacherAssignment, useDeleteTeacherAssignment } from '@/hooks/useAdmin'
+import { useBatches, useEnrollments, useAttendance, useTeachers, useResources, useSubjects, useTeacherAssignments, useCreateTeacherAssignment, useDeleteTeacherAssignment, useStudents, useCreateEnrollment } from '@/hooks/useAdmin'
 import type { TeacherAssignment, User, Subject } from '@/api/admin.api'
+import { toast } from 'sonner'
 
 export function BatchDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -84,11 +85,16 @@ export function BatchDetailsPage() {
   const [selectedTeacherId, setSelectedTeacherId] = useState('')
   const [selectedSubjectId, setSelectedSubjectId] = useState('')
 
+  // Enrollment state
+  const [enrollStudentOpen, setEnrollStudentOpen] = useState(false)
+  const [selectedStudentId, setSelectedStudentId] = useState('')
+
   // Fetch real data
   const { data: allBatches, isLoading: batchesLoading } = useBatches({})
   const { data: allEnrollments, isLoading: enrollmentsLoading } = useEnrollments()
   const { data: allAttendance } = useAttendance({ batchId: id })
   const { data: allTeachers } = useTeachers()
+  const { data: allStudents } = useStudents()
   const { data: allResources } = useResources({ batchId: id })
   const { data: allSubjects } = useSubjects()
   const { data: teacherAssignments } = useTeacherAssignments({ batchId: id })
@@ -96,6 +102,7 @@ export function BatchDetailsPage() {
   // Teacher assignment mutations
   const createTeacherAssignmentMutation = useCreateTeacherAssignment()
   const deleteTeacherAssignmentMutation = useDeleteTeacherAssignment()
+  const createEnrollmentMutation = useCreateEnrollment()
 
   // Find the specific batch
   const batch = allBatches?.find(b => b.id === id)
@@ -108,6 +115,11 @@ export function BatchDetailsPage() {
   
   // Get assigned teachers for this batch
   const assignments = teacherAssignments || []
+
+  const enrolledStudentIds = new Set(enrollments.map(e => e.student.id))
+  const studentsAvailableToEnroll = (allStudents || []).filter(
+    student => !enrolledStudentIds.has(student.id),
+  )
   
   // Get students from enrollments
   const students = enrollments.map(e => ({
@@ -136,19 +148,53 @@ export function BatchDetailsPage() {
   // Teacher assignment handlers
   const handleAssignTeacher = async () => {
     if (!selectedTeacherId || !selectedSubjectId || !id) return
-    await createTeacherAssignmentMutation.mutateAsync({
-      teacherId: selectedTeacherId,
-      subjectId: selectedSubjectId,
-      batchId: id,
-    })
-    setSelectedTeacherId('')
-    setSelectedSubjectId('')
-    setAssignTeacherOpen(false)
+    try {
+      await createTeacherAssignmentMutation.mutateAsync({
+        teacherId: selectedTeacherId,
+        subjectId: selectedSubjectId,
+        batchId: id,
+      })
+      setSelectedTeacherId('')
+      setSelectedSubjectId('')
+      setAssignTeacherOpen(false)
+      toast.success('Teacher assigned successfully')
+    } catch {
+      toast.error('Failed to assign teacher')
+    }
   }
 
   const handleRemoveAssignment = async (assignmentId: string) => {
     if (confirm('Are you sure you want to remove this teacher assignment?')) {
-      await deleteTeacherAssignmentMutation.mutateAsync(assignmentId)
+      try {
+        await deleteTeacherAssignmentMutation.mutateAsync(assignmentId)
+        toast.success('Teacher assignment removed')
+      } catch {
+        toast.error('Failed to remove teacher assignment')
+      }
+    }
+  }
+
+  const handleEnrollStudent = async () => {
+    if (!selectedStudentId || !id) {
+      toast.error('Please select a student')
+      return
+    }
+
+    if (enrolledStudentIds.has(selectedStudentId)) {
+      toast.error('Student is already enrolled in this batch')
+      return
+    }
+
+    try {
+      await createEnrollmentMutation.mutateAsync({
+        studentId: selectedStudentId,
+        batchId: id,
+      })
+      setSelectedStudentId('')
+      setEnrollStudentOpen(false)
+      toast.success('Student enrolled successfully')
+    } catch {
+      toast.error('Failed to enroll student')
     }
   }
 
@@ -448,7 +494,7 @@ export function BatchDetailsPage() {
                   <SelectItem value="dropped">Dropped</SelectItem>
                 </SelectContent>
               </Select>
-              <Button>
+              <Button onClick={() => setEnrollStudentOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Enroll Student
               </Button>
@@ -528,7 +574,7 @@ export function BatchDetailsPage() {
                 <Users className="h-12 w-12 text-muted-foreground" />
                 <h3 className="mt-4 font-semibold">No Students</h3>
                 <p className="text-sm text-muted-foreground">No students have been enrolled in this batch yet.</p>
-                <Button className="mt-4">
+                <Button className="mt-4" onClick={() => setEnrollStudentOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Enroll Student
                 </Button>
@@ -720,6 +766,60 @@ export function BatchDetailsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={enrollStudentOpen} onOpenChange={setEnrollStudentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enroll Student</DialogTitle>
+            <DialogDescription>
+              Add a student to {batch.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="student">Student</Label>
+              <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a student" />
+                </SelectTrigger>
+                <SelectContent>
+                  {studentsAvailableToEnroll.length > 0 ? (
+                    studentsAvailableToEnroll.map((student: User) => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      No students available to enroll
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedStudentId('')
+                setEnrollStudentOpen(false)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleEnrollStudent}
+              disabled={!selectedStudentId || selectedStudentId === 'none' || createEnrollmentMutation.isPending}
+            >
+              {createEnrollmentMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Enroll Student
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
